@@ -9,7 +9,7 @@ def main():
     base_dir = dirname(__file__)
     setup(
         name='flaky',
-        version='0.0.4',
+        version='0.1.0',
         description='Plugin for nose that automatically reruns flaky tests.',
         long_description=open(join(base_dir, 'README.rst')).read(),
         author='Box',
