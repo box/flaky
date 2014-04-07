@@ -1,0 +1,5 @@
+[run]
+# Whether to measure branch coverage in addition to statement coverage.
+branch = True
+# List of packages or directories, the source to measure during execution.
+source = box
