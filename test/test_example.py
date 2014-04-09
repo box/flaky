@@ -6,7 +6,7 @@ from __future__ import unicode_literals
 # a live tutorial, showing the various features in action.
 
 from unittest import TestCase, expectedFailure, skip
-from box.test.flaky.flaky_decorator import flaky
+from box.test.flaky import flaky
 
 
 class ExampleTests(TestCase):
