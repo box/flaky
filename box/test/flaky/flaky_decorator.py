@@ -31,11 +31,19 @@ def flaky(max_runs=None, min_passes=None):
         min_passes = 1
     if min_passes <= 0:
         raise ValueError('min_passes must be positive')
+    # In case @flaky is applied to a function or class without arguments
+    # (and without parentheses), max_runs will refer to the wrapped object.
+    # In this case, the default value can be used.
+    wrapped = None
+    if hasattr(max_runs, '__call__'):
+        wrapped = max_runs
+        max_runs = 2
     if max_runs < min_passes:
         raise ValueError('min_passes cannot be greater than max_runs!')
-    return attr(**{
+    wrapper = attr(**{
         FlakyNames.MAX_RUNS: max_runs,
         FlakyNames.MIN_PASSES: min_passes,
         FlakyNames.CURRENT_RUNS: 0,
         FlakyNames.CURRENT_PASSES: 0,
     })
+    return wrapper(wrapped) if wrapped is not None else wrapper
