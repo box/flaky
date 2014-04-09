@@ -53,7 +53,7 @@ class ExampleTests(TestCase):
         self.assertFalse(True)
 
 
-@flaky()
+@flaky
 class ExampleFlakyTests(TestCase):
     _threshold = -1
 
