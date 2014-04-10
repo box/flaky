@@ -26,7 +26,7 @@ To mark a test as flaky, simply decorate it with @flaky():
 
 .. code-block:: python
 
-    @flaky()
+    @flaky
     def test_something_that_usually_passes(self):
         value_to_double = 21
         result = get_result_from_flaky_doubler(value_to_double)
@@ -50,7 +50,7 @@ In addition to marking a single test flaky, entire test cases can be marked flak
 
 .. code-block:: python
 
-    @flaky()
+    @flaky
     class TestMultipliers(TestCase):
         def test_flaky_doubler(self):
             value_to_double = 21
