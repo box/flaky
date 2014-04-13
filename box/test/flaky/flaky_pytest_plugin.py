@@ -191,6 +191,7 @@ class FlakyCallInfo(CallInfo):
     result = None
 
     def __init__(self, plugin, item, func, when):
+        # pylint:disable=super-init-not-called
         #: context of invocation: one of "setup", "call",
         #: "teardown", "memocollect"
         self.when = when
