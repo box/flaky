@@ -5,7 +5,7 @@ from io import StringIO
 from mock import call, MagicMock, patch
 from unittest import TestCase
 from box.test.flaky.flaky_decorator import flaky
-from box.test.flaky.flaky_plugin import FlakyPlugin
+from box.test.flaky.flaky_nose_plugin import FlakyPlugin
 from box.test.flaky.names import FlakyNames
 
 
@@ -13,11 +13,12 @@ class TestFlakyPlugin(TestCase):
     def setUp(self):
         super(TestFlakyPlugin, self).setUp()
 
-        test_mod = 'box.test.flaky.flaky_plugin'
+        test_mod = 'box.test.flaky.flaky_nose_plugin'
+        test_base_mod = 'box.test.flaky._flaky_plugin'
         self._mock_test_result = MagicMock()
         self._mock_stream = MagicMock(spec=StringIO)
         with patch(test_mod + '.TextTestResult') as flaky_result:
-            with patch(test_mod + '.StringIO') as string_io:
+            with patch(test_base_mod + '.StringIO') as string_io:
                 string_io.return_value = self._mock_stream
                 flaky_result.return_value = self._mock_test_result
                 self._flaky_plugin = FlakyPlugin()
@@ -45,6 +46,61 @@ class TestFlakyPlugin(TestCase):
             self._mock_exception_type,
             self._mock_exception,
             self._mock_stack_trace
+        )
+
+    def test_flaky_plugin_report(self):
+        flaky_report = 'Flaky tests passed; others failed. ' \
+                       'No more tests; that ship has sailed.'
+        self._test_flaky_plugin_report(flaky_report)
+
+    def test_flaky_plugin_handles_success_for_test_method(self):
+        self._test_flaky_plugin_handles_success()
+
+    def test_flaky_plugin_handles_success_for_test_instance(self):
+        self._test_flaky_plugin_handles_success(is_test_method=False)
+
+    def test_flaky_plugin_handles_success_for_needs_rerun(self):
+        self._test_flaky_plugin_handles_success(min_passes=2)
+
+    def test_flaky_plugin_ignores_success_for_non_flaky_test(self):
+        self._expect_test_not_flaky()
+        self._flaky_plugin.addSuccess(self._mock_test_case)
+        self._assert_test_ignored()
+
+    def test_flaky_plugin_ignores_error_for_non_flaky_test(self):
+        self._expect_test_not_flaky()
+        self._flaky_plugin.handleError(self._mock_test_case, None)
+        self._assert_test_ignored()
+
+    def test_flaky_plugin_ignores_failure_for_non_flaky_test(self):
+        self._expect_test_not_flaky()
+        self._flaky_plugin.handleFailure(self._mock_test_case, None)
+        self._assert_test_ignored()
+
+    def test_flaky_plugin_handles_error_for_test_method(self):
+        self._test_flaky_plugin_handles_failure_or_error()
+
+    def test_flaky_plugin_handles_error_for_test_instance(self):
+        self._test_flaky_plugin_handles_failure_or_error(is_test_method=False)
+
+    def test_flaky_plugin_handles_failure_for_test_method(self):
+        self._test_flaky_plugin_handles_failure_or_error(is_failure=True)
+
+    def test_flaky_plugin_handles_failure_for_test_instance(self):
+        self._test_flaky_plugin_handles_failure_or_error(
+            is_failure=True,
+            is_test_method=False
+        )
+
+    def test_flaky_plugin_handles_failure_for_no_more_retries(self):
+        self._test_flaky_plugin_handles_failure_or_error(
+            is_failure=True,
+            max_runs=1
+        )
+
+    def test_flaky_plugin_handles_additional_errors(self):
+        self._test_flaky_plugin_handles_failure_or_error(
+            current_errors=[self._mock_error]
         )
 
     def _expect_call_test_address(self):
@@ -127,61 +183,6 @@ class TestFlakyPlugin(TestCase):
                 expected_flaky_attributes,
                 actual_flaky_attributes
             )
-        )
-
-    def test_flaky_plugin_report(self):
-        flaky_report = 'Flaky tests passed; others failed. ' \
-                       'No more tests; that ship has sailed.'
-        self._test_flaky_plugin_report(flaky_report)
-
-    def test_flaky_plugin_handles_success_for_test_method(self):
-        self._test_flaky_plugin_handles_success()
-
-    def test_flaky_plugin_handles_success_for_test_instance(self):
-        self._test_flaky_plugin_handles_success(is_test_method=False)
-
-    def test_flaky_plugin_handles_success_for_needs_rerun(self):
-        self._test_flaky_plugin_handles_success(min_passes=2)
-
-    def test_flaky_plugin_ignores_success_for_non_flaky_test(self):
-        self._expect_test_not_flaky()
-        self._flaky_plugin.addSuccess(self._mock_test_case)
-        self._assert_test_ignored()
-
-    def test_flaky_plugin_ignores_error_for_non_flaky_test(self):
-        self._expect_test_not_flaky()
-        self._flaky_plugin.handleError(self._mock_test_case, None)
-        self._assert_test_ignored()
-
-    def test_flaky_plugin_ignores_failure_for_non_flaky_test(self):
-        self._expect_test_not_flaky()
-        self._flaky_plugin.handleFailure(self._mock_test_case, None)
-        self._assert_test_ignored()
-
-    def test_flaky_plugin_handles_error_for_test_method(self):
-        self._test_flaky_plugin_handles_failure_or_error()
-
-    def test_flaky_plugin_handles_error_for_test_instance(self):
-        self._test_flaky_plugin_handles_failure_or_error(is_test_method=False)
-
-    def test_flaky_plugin_handles_failure_for_test_method(self):
-        self._test_flaky_plugin_handles_failure_or_error(is_failure=True)
-
-    def test_flaky_plugin_handles_failure_for_test_instance(self):
-        self._test_flaky_plugin_handles_failure_or_error(
-            is_failure=True,
-            is_test_method=False
-        )
-
-    def test_flaky_plugin_handles_failure_for_no_more_retries(self):
-        self._test_flaky_plugin_handles_failure_or_error(
-            is_failure=True,
-            max_runs=1
-        )
-
-    def test_flaky_plugin_handles_additional_errors(self):
-        self._test_flaky_plugin_handles_failure_or_error(
-            current_errors=[self._mock_error]
         )
 
     def _test_flaky_plugin_handles_failure_or_error(
