@@ -64,7 +64,7 @@ In addition to marking a single test flaky, entire test cases can be marked flak
             self.assertEqual(result, value_to_triple * 3, 'Result tripled incorrectly.')
 
 The @flaky() class decorator will mark test_flaky_doubler as flaky, but it won't override the 3 max_runs
-for test_flaky_doubler (from the decorator on that test method).
+for test_flaky_tripler (from the decorator on that test method).
 
 Additional usage examples are in the code - see test/test_example.py
 
