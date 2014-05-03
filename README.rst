@@ -39,7 +39,7 @@ run max_runs times without passing min_passes times, it's considered a failure.
 
 .. code-block:: python
 
-    @flaky(3, 2)
+    @flaky(max_runs=3, min_passes=2)
     def test_something_that_usually_passes(self):
         """This test must pass twice, and it can be run up to three times."""
         value_to_double = 21
@@ -57,7 +57,7 @@ In addition to marking a single test flaky, entire test cases can be marked flak
             result = get_result_from_flaky_doubler(value_to_double)
             self.assertEqual(result, value_to_double * 2, 'Result doubled incorrectly.')
 
-        @flaky(3)
+        @flaky(max_runs=3)
         def test_flaky_tripler(self):
             value_to_triple = 14
             result = get_result_from_flaky_tripler(value_to_triple)
