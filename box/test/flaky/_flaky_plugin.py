@@ -6,12 +6,12 @@ from box.test.flaky.names import FlakyNames
 from box.test.flaky.utils import unicode_type
 
 
-class FlakyPlugin(object):
+class _FlakyPlugin(object):
     _retry_failure_message = ' failed ({0} runs remaining out of {1}).'
     _failure_message = ' failed; it passed {0} out of the required {1} times.'
 
     def __init__(self):
-        super(FlakyPlugin, self).__init__()
+        super(_FlakyPlugin, self).__init__()
         self._stream = StringIO()
 
     def _log_test_failure(self, test_method_name, err, message):
