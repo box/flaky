@@ -7,6 +7,7 @@ from box.test.flaky.utils import unicode_type
 
 
 class _FlakyPlugin(object):
+    # pylint:disable=R0921
     _retry_failure_message = ' failed ({0} runs remaining out of {1}).'
     _failure_message = ' failed; it passed {0} out of the required {1} times.'
 
