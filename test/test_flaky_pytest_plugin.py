@@ -10,6 +10,7 @@ from box.test.flaky import flaky
 from box.test.flaky import _flaky_plugin
 from box.test.flaky.flaky_pytest_plugin import FlakyPlugin, FlakyCallInfo
 from box.test.flaky.names import FlakyNames
+from box.test.flaky.utils import unicode_type
 
 
 # pylint:disable=redefined-outer-name
@@ -345,13 +346,13 @@ class TestFlakyPytestPlugin(object):
         )
         stream.writelines([
             self._test_method_name,
-            " passed {} out of the required {} times. ".format(
+            " passed {0} out of the required {1} times. ".format(
                 current_passes + 1, min_passes,
             ),
         ])
         if expected_plugin_handles_success:
             stream.write(
-                'Running test again until it passes {} times.\n'.format(
+                'Running test again until it passes {0} times.\n'.format(
                     min_passes,
                 ),
             )
@@ -426,19 +427,19 @@ class TestFlakyPytestPlugin(object):
         if expected_plugin_handles_failure:
             stream.writelines([
                 self._test_method_name,
-                ' failed ({} runs remaining out of {}).'.format(
+                ' failed ({0} runs remaining out of {1}).'.format(
                     max_runs - current_runs - 1, max_runs
                 ),
                 '\n\t',
-                unicode(mock_error.type),
+                unicode_type(mock_error.type),
                 '\n\t',
-                unicode(mock_error.value.message),
+                unicode_type(mock_error.value),
                 '\n\t',
-                unicode(mock_error.traceback),
+                unicode_type(mock_error.traceback),
                 '\n',
             ])
         else:
-            message = ' failed; it passed {} out of the required {} times.'
+            message = ' failed; it passed {0} out of the required {1} times.'
             stream.writelines([
                 self._test_method_name,
                 message.format(
@@ -446,11 +447,11 @@ class TestFlakyPytestPlugin(object):
                     min_passes
                 ),
                 '\n\t',
-                unicode(mock_error.type),
+                unicode_type(mock_error.type),
                 '\n\t',
-                unicode(mock_error.value.message),
+                unicode_type(mock_error.value),
                 '\n\t',
-                unicode(mock_error.traceback),
+                unicode_type(mock_error.traceback),
                 '\n',
             ])
         assert stream.getvalue() == mock_stream.getvalue()
@@ -469,13 +470,13 @@ class TestFlakyPytestPlugin(object):
             test_owner,
             test_method_name,
         )
-        actual_flaky_attributes = {
-            attr: getattr(
+        actual_flaky_attributes = dict((
+            (attr, getattr(
                 test_object,
                 attr,
                 None,
-            ) for attr in FlakyNames()
-        }
+            )) for attr in FlakyNames()
+        ))
         return actual_flaky_attributes
 
     @staticmethod

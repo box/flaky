@@ -3,11 +3,12 @@
 from __future__ import unicode_literals
 from io import StringIO
 from box.test.flaky.names import FlakyNames
+from box.test.flaky.utils import unicode_type
 
 
 class FlakyPlugin(object):
-    _retry_failure_message = ' failed ({} runs remaining out of {}).'
-    _failure_message = ' failed; it passed {} out of the required {} times.'
+    _retry_failure_message = ' failed ({0} runs remaining out of {1}).'
+    _failure_message = ' failed; it passed {0} out of the required {1} times.'
 
     def __init__(self):
         super(FlakyPlugin, self).__init__()
@@ -19,14 +20,14 @@ class FlakyPlugin(object):
         printed by the plugin's report method.
         """
         self._stream.writelines([
-            unicode(test_method_name),
+            unicode_type(test_method_name),
             message,
             '\n\t',
-            unicode(err[0]),
+            unicode_type(err[0]),
             '\n\t',
-            unicode(err[1].message),
+            unicode_type(err[1]),
             '\n\t',
-            unicode(err[2]),
+            unicode_type(err[2]),
             '\n',
         ])
 
@@ -142,15 +143,15 @@ class FlakyPlugin(object):
         flaky = self._get_flaky_attributes(test_method)
         min_passes = flaky[FlakyNames.MIN_PASSES]
         self._stream.writelines([
-            unicode(test_method_name),
-            ' passed {} out of the required {} times. '.format(
+            unicode_type(test_method_name),
+            ' passed {0} out of the required {1} times. '.format(
                 current_passes,
                 min_passes,
             ),
         ])
         if not self._has_flaky_test_succeeded(flaky):
             self._stream.write(
-                'Running test again until it passes {} times.\n'.format(
+                'Running test again until it passes {0} times.\n'.format(
                     min_passes,
                 )
             )
@@ -183,7 +184,7 @@ class FlakyPlugin(object):
             :class:`nose.case.Test`
         """
         test_method, _ = cls._get_test_method_and_name(test)
-        for attr, value in cls._get_flaky_attributes(test_class).iteritems():
+        for attr, value in cls._get_flaky_attributes(test_class).items():
             if value is not None:
                 if not hasattr(
                     test_method,
@@ -250,12 +251,12 @@ class FlakyPlugin(object):
         :rtype:
             `dict` of `unicode` to varies
         """
-        return {
-            attr: cls._get_flaky_attribute(
+        return dict((
+            (attr, cls._get_flaky_attribute(
                 test_method,
                 attr,
-            ) for attr in FlakyNames()
-        }
+            )) for attr in FlakyNames()
+        ))
 
     @classmethod
     def _add_flaky_test_failure(cls, test_method, err):

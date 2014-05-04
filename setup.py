@@ -17,7 +17,7 @@ def main():
         url='https://github.com/box/flaky',
         license=open(join(base_dir, 'LICENSE')).read(),
         packages=find_packages(exclude=['test']),
-        namespace_packages=[b'box', b'box.test'],
+        namespace_packages=['box', 'box.test'],
         test_suite='test',
         tests_require=['pytest', 'nose'],
         zip_safe=False,

@@ -47,7 +47,7 @@ def flaky(max_runs=None, min_passes=None):
     }
 
     def wrapper(wrapped_object):
-        for name, value in attrib.iteritems():
+        for name, value in attrib.items():
             setattr(wrapped_object, name, value)
         return wrapped_object
 
