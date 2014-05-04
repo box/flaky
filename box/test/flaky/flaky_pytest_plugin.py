@@ -8,7 +8,7 @@ import py
 from _pytest.runner import CallInfo, Skipped
 # pylint:enable=import-error
 
-from box.test.flaky._flaky_plugin import FlakyPlugin as _FlakyPlugin
+from box.test.flaky._flaky_plugin import _FlakyPlugin
 
 
 def pytest_configure(config):
@@ -214,6 +214,7 @@ class FlakyCallInfo(CallInfo):
         :type plugin:
             :class: `FlakyPlugin`
         """
+        is_call = self.when == 'call'
         try:
             self.result = func()
         except KeyboardInterrupt:
@@ -227,18 +228,22 @@ class FlakyCallInfo(CallInfo):
             # pylint:disable=no-member
             err = py.code.ExceptionInfo()
             # pylint:enable=no-member
-            if self.when == 'call' and not plugin.add_failure(
-                self,
-                self._item,
-                err
-            ):
-                self.excinfo = err
+            if is_call:
+                handled_failure = plugin.add_failure(
+                    self,
+                    self._item,
+                    err
+                )
+                if not handled_failure:
+                    self.excinfo = err
         else:
-            if self.when == 'call' and not plugin.add_success(
-                self,
-                self._item
-            ):
-                self.excinfo = None
+            if is_call:
+                handled_success = plugin.add_success(
+                    self,
+                    self._item
+                )
+                if not handled_success:
+                    self.excinfo = None
 
 
 PLUGIN = FlakyPlugin()

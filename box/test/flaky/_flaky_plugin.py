@@ -6,12 +6,12 @@ from box.test.flaky.names import FlakyNames
 from box.test.flaky.utils import unicode_type
 
 
-class FlakyPlugin(object):
+class _FlakyPlugin(object):
     _retry_failure_message = ' failed ({0} runs remaining out of {1}).'
     _failure_message = ' failed; it passed {0} out of the required {1} times.'
 
     def __init__(self):
-        super(FlakyPlugin, self).__init__()
+        super(_FlakyPlugin, self).__init__()
         self._stream = StringIO()
 
     def _log_test_failure(self, test_method_name, err, message):
@@ -186,13 +186,8 @@ class FlakyPlugin(object):
         test_method, _ = cls._get_test_method_and_name(test)
         for attr, value in cls._get_flaky_attributes(test_class).items():
             if value is not None:
-                if not hasattr(
-                    test_method,
-                    attr,
-                ) or getattr(
-                    test_method,
-                    attr,
-                ) is None:
+                attr_already_set = hasattr(test_method, attr)
+                if not attr_already_set or getattr(test_method, attr) is None:
                     cls._set_flaky_attribute(test_method, attr, value)
 
     @staticmethod
