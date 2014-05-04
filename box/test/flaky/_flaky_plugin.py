@@ -186,13 +186,8 @@ class FlakyPlugin(object):
         test_method, _ = cls._get_test_method_and_name(test)
         for attr, value in cls._get_flaky_attributes(test_class).items():
             if value is not None:
-                if not hasattr(
-                    test_method,
-                    attr,
-                ) or getattr(
-                    test_method,
-                    attr,
-                ) is None:
+                attr_already_set = hasattr(test_method, attr)
+                if not attr_already_set or getattr(test_method, attr) is None:
                     cls._set_flaky_attribute(test_method, attr, value)
 
     @staticmethod
