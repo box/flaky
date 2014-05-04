@@ -177,6 +177,7 @@ ignore-mixin-members=yes
 # List of classes names for which member attributes should not be checked
 # (useful for classes with attributes dynamically set).
 #ignored-classes=SQLObject
+ignored-classes=pytest, _pytest
 
 # When zope mode is activated, add a predefined set of Zope acquired attributes
 # to generated-members.
@@ -221,14 +222,14 @@ valid-metaclass-classmethod-first-arg=mcs
 [DESIGN]
 
 # Maximum number of arguments for function / method
-max-args=8
+max-args=15
 
 # Argument names that match this expression will be ignored. Default to name
 # with leading underscore
 ignored-argument-names=_.*
 
 # Maximum number of locals for function / method body
-max-locals=15
+max-locals=20
 
 # Maximum number of return / yield for function / method body
 max-returns=6

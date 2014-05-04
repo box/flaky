@@ -2,8 +2,6 @@
 
 from __future__ import unicode_literals
 
-from nose.plugins.attrib import attr
-
 from box.test.flaky.names import FlakyNames
 
 
@@ -40,10 +38,17 @@ def flaky(max_runs=None, min_passes=None):
         max_runs = 2
     if max_runs < min_passes:
         raise ValueError('min_passes cannot be greater than max_runs!')
-    wrapper = attr(**{
+
+    attrib = {
         FlakyNames.MAX_RUNS: max_runs,
         FlakyNames.MIN_PASSES: min_passes,
         FlakyNames.CURRENT_RUNS: 0,
         FlakyNames.CURRENT_PASSES: 0,
-    })
+    }
+
+    def wrapper(wrapped_object):
+        for name, value in attrib.items():
+            setattr(wrapped_object, name, value)
+        return wrapped_object
+
     return wrapper(wrapped) if wrapped is not None else wrapper

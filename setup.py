@@ -10,23 +10,26 @@ def main():
     setup(
         name='flaky',
         version='0.2.0',
-        description='Plugin for nose that automatically reruns flaky tests.',
+        description='Plugin for nose or py.test that automatically reruns flaky tests.',
         long_description=open(join(base_dir, 'README.rst')).read(),
         author='Box',
         author_email='oss@box.com',
         url='https://github.com/box/flaky',
         license=open(join(base_dir, 'LICENSE')).read(),
         packages=find_packages(exclude=['test']),
-        namespace_packages=[b'box', b'box.test'],
+        namespace_packages=['box', 'box.test'],
         test_suite='test',
+        tests_require=['pytest', 'nose'],
         zip_safe=False,
         entry_points={
             'nose.plugins.0.10': [
-                'flaky = box.test.flaky.flaky_plugin:FlakyPlugin'
+                'flaky = box.test.flaky.flaky_nose_plugin:FlakyPlugin'
+            ],
+            'pytest11': [
+                'flaky = box.test.flaky.flaky_pytest_plugin'
             ]
         },
-        install_requires=['nose'],
-        keywords='nose plugin flaky tests rerun retry'
+        keywords='nose pytest plugin flaky tests rerun retry',
     )
 
 

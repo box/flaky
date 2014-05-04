@@ -5,21 +5,30 @@ from __future__ import unicode_literals
 # This is an end-to-end example of the flaky package in action. Consider it
 # a live tutorial, showing the various features in action.
 
+# pylint:disable=import-error
+import pytest
+# pylint:enable=import-error
 from box.test.flaky import flaky
-from box.test.flaky.utils import TestCase, expectedFailure, skip
 
 
-class ExampleTests(TestCase):
+@flaky
+def test_something_flaky(dummy_list=[]):
+    # pylint:disable=dangerous-default-value
+    dummy_list.append(0)
+    assert len(dummy_list) > 1
+
+
+class TestExample(object):
     _threshold = -1
 
     def test_non_flaky_thing(self):
         """Flaky will not interact with this test"""
         pass
 
-    @expectedFailure
+    @pytest.mark.xfail
     def test_non_flaky_failing_thing(self):
         """Flaky will also not interact with this test"""
-        self.assertFalse(True)
+        assert self == 1
 
     @flaky(3, 2)
     def test_flaky_thing_that_fails_then_succeeds(self):
@@ -28,8 +37,7 @@ class ExampleTests(TestCase):
         It will fail once and then succeed twice.
         """
         self._threshold += 1
-        if self._threshold < 1:
-            raise Exception("Threshold is not high enough.")
+        assert self._threshold >= 1
 
     @flaky(3, 2)
     def test_flaky_thing_that_succeeds_then_fails_then_succeeds(self):
@@ -38,23 +46,25 @@ class ExampleTests(TestCase):
         It will succeed once, fail once, and then succeed one more time.
         """
         self._threshold += 1
-        if self._threshold == 1:
-            self.assertFalse(True)
+        assert self._threshold != 1
 
     @flaky(2, 2)
     def test_flaky_thing_that_always_passes(self):
         """Flaky will run this test twice.  Both will succeed."""
         pass
 
-    @skip("This really fails! Remove this decorator to see the test failure.")
+    @pytest.mark.skipif(
+        'True',
+        reason="This really fails! Remove skipif to see the test failure."
+    )
     @flaky()
     def test_flaky_thing_that_always_fails(self):
         """Flaky will run this test twice.  Both will fail."""
-        self.assertFalse(True)
+        assert self is None
 
 
 @flaky
-class ExampleFlakyTests(TestCase):
+class TestExampleFlakyTests(object):
     _threshold = -1
 
     def test_flaky_thing_that_fails_then_succeeds(self):
@@ -63,5 +73,4 @@ class ExampleFlakyTests(TestCase):
         It will fail once and then succeed.
         """
         self._threshold += 1
-        if self._threshold < 1:
-            raise Exception("Threshold is not high enough.")
+        assert self._threshold >= 1

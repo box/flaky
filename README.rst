@@ -10,7 +10,7 @@ flaky
 .. image:: https://pypip.in/d/flaky/badge.png
     :target: https://pypi.python.org/pypi/flaky
 
-Flaky is a plugin for nose that automatically reruns flaky tests.
+Flaky is a plugin for nose or py.test that automatically reruns flaky tests.
 
 Ideally, tests reliably pass or fail, but sometimes test fixtures must rely on components that aren't 100%
 reliable. With flaky, instead of removing those tests or marking them to @skip, they can be automatically

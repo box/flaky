@@ -3,4 +3,5 @@ mock
 nose
 pep8
 pylint
+pytest
 tox
