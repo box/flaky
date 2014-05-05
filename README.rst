@@ -22,7 +22,7 @@ Like any nose plugin, flaky can be activated via the command line:
 
     nosetests --with-flaky
 
-To mark a test as flaky, simply decorate it with @flaky():
+To mark a test as flaky, simply decorate it with @flaky:
 
 .. code-block:: python
 
@@ -63,7 +63,7 @@ In addition to marking a single test flaky, entire test cases can be marked flak
             result = get_result_from_flaky_tripler(value_to_triple)
             self.assertEqual(result, value_to_triple * 3, 'Result tripled incorrectly.')
 
-The @flaky() class decorator will mark test_flaky_doubler as flaky, but it won't override the 3 max_runs
+The @flaky class decorator will mark test_flaky_doubler as flaky, but it won't override the 3 max_runs
 for test_flaky_tripler (from the decorator on that test method).
 
 Additional usage examples are in the code - see test/test_example.py
