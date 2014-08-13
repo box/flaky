@@ -224,6 +224,7 @@ class FlakyCallInfo(CallInfo):
             err = py.code.ExceptionInfo()
             # pylint:enable=no-member
             self.excinfo = err
+        # pylint:disable=bare-except
         except:
             # pylint:disable=no-member
             err = py.code.ExceptionInfo()
