@@ -4,7 +4,7 @@ from __future__ import unicode_literals
 from io import StringIO
 from mock import call, MagicMock, patch
 from box.test.flaky.flaky_decorator import flaky
-from box.test.flaky.flaky_nose_plugin import FlakyPlugin
+from box.test.flaky import flaky_nose_plugin
 from box.test.flaky.names import FlakyNames
 from box.test.flaky.utils import TestCase, unicode_type
 
@@ -13,15 +13,14 @@ class TestFlakyPlugin(TestCase):
     def setUp(self):
         super(TestFlakyPlugin, self).setUp()
 
-        test_mod = 'box.test.flaky.flaky_nose_plugin'
         test_base_mod = 'box.test.flaky._flaky_plugin'
         self._mock_test_result = MagicMock()
         self._mock_stream = MagicMock(spec=StringIO)
-        with patch(test_mod + '.TextTestResult') as flaky_result:
+        with patch.object(flaky_nose_plugin, 'TextTestResult') as flaky_result:
             with patch(test_base_mod + '.StringIO') as string_io:
                 string_io.return_value = self._mock_stream
                 flaky_result.return_value = self._mock_test_result
-                self._flaky_plugin = FlakyPlugin()
+                self._flaky_plugin = flaky_nose_plugin.FlakyPlugin()
         self._mock_test = MagicMock(name='flaky_plugin_test')
         self._mock_test_case = MagicMock(
             name='flaky_plugin_test_case',
