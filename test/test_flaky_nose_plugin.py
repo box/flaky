@@ -76,6 +76,15 @@ class TestFlakyPlugin(TestCase):
         self._flaky_plugin.handleFailure(self._mock_test_case, None)
         self._assert_test_ignored()
 
+    def test_flaky_plugin_ignores_error_for_nose_failure(self):
+        self._mock_test_case.address.return_value = (
+            None,
+            self._mock_test_module_name,
+            None,
+        )
+        self._flaky_plugin.handleError(self._mock_test_case, None)
+        self._assert_test_ignored()
+
     def test_flaky_plugin_handles_error_for_test_method(self):
         self._test_flaky_plugin_handles_failure_or_error()
 

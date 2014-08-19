@@ -54,7 +54,12 @@ class _FlakyPlugin(object):
         :rtype:
             `bool`
         """
-        test_method, test_method_name = self._get_test_method_and_name(test)
+        try:
+            test_method, test_method_name = self._get_test_method_and_name(
+                test
+            )
+        except AttributeError:
+            return False
         current_runs = self._get_flaky_attribute(
             test_method,
             FlakyNames.CURRENT_RUNS,
