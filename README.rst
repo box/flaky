@@ -21,7 +21,7 @@ vs.
 .. code-block:: python
     from box.test.flaky import flaky
 
-In version 0.5.0, however, you will no longer be able to import flaky from box.test.
+In version 1.0.0, however, you will no longer be able to import flaky from box.test.
 
 About
 -----
