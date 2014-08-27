@@ -6,11 +6,11 @@ from io import StringIO
 # pylint:disable=import-error
 import pytest
 # pylint:enable=import-error
-from box.test.flaky import flaky
-from box.test.flaky import _flaky_plugin
-from box.test.flaky.flaky_pytest_plugin import FlakyPlugin, FlakyCallInfo
-from box.test.flaky.names import FlakyNames
-from box.test.flaky.utils import unicode_type
+from flaky import flaky
+from flaky import _flaky_plugin
+from flaky.flaky_pytest_plugin import FlakyPlugin, FlakyCallInfo
+from flaky.names import FlakyNames
+from flaky.utils import unicode_type
 
 
 # pylint:disable=redefined-outer-name

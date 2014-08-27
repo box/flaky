@@ -1,9 +1,9 @@
 # coding: utf-8
 
 from __future__ import unicode_literals
-from box.test.flaky.flaky_decorator import flaky
-from box.test.flaky.names import FlakyNames
-from box.test.flaky.utils import TestCase
+from flaky.flaky_decorator import flaky
+from flaky.names import FlakyNames
+from flaky.utils import TestCase
 
 
 class TestFlakyDecorator(TestCase):
