@@ -8,7 +8,7 @@ import py
 from _pytest.runner import CallInfo, Skipped
 # pylint:enable=import-error
 
-from box.test.flaky._flaky_plugin import _FlakyPlugin
+from flaky._flaky_plugin import _FlakyPlugin
 
 
 def pytest_configure(config):

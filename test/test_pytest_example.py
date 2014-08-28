@@ -8,7 +8,7 @@ from __future__ import unicode_literals
 # pylint:disable=import-error
 import pytest
 # pylint:enable=import-error
-from box.test.flaky import flaky
+from flaky import flaky
 
 
 @flaky

@@ -10,6 +10,27 @@ flaky
 .. image:: https://pypip.in/d/flaky/badge.png
     :target: https://pypi.python.org/pypi/flaky
 
+Upcoming Breaking Change!
+-------------------------
+
+When Flaky was released through version 0.3.0, it was released under the namespace
+box.test. In version 0.4.0, importing flaky became easier:
+
+.. code-block:: python
+
+    from flaky import flaky
+
+vs.
+
+.. code-block:: python
+
+    from box.test.flaky import flaky
+
+In version 1.0.0, however, you will no longer be able to import flaky from box.test.
+
+About
+-----
+
 Flaky is a plugin for nose or py.test that automatically reruns flaky tests.
 
 Ideally, tests reliably pass or fail, but sometimes test fixtures must rely on components that aren't 100%

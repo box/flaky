@@ -2,7 +2,7 @@
 
 from __future__ import unicode_literals
 
-from box.test.flaky.names import FlakyNames
+from flaky.names import FlakyNames
 
 
 def flaky(max_runs=None, min_passes=None):

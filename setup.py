@@ -9,7 +9,7 @@ def main():
     base_dir = dirname(__file__)
     setup(
         name='flaky',
-        version='0.3.0',
+        version='0.4.0',
         description='Plugin for nose or py.test that automatically reruns flaky tests.',
         long_description=open(join(base_dir, 'README.rst')).read(),
         author='Box',
@@ -23,10 +23,10 @@ def main():
         zip_safe=False,
         entry_points={
             'nose.plugins.0.10': [
-                'flaky = box.test.flaky.flaky_nose_plugin:FlakyPlugin'
+                'flaky = flaky.flaky_nose_plugin:FlakyPlugin'
             ],
             'pytest11': [
-                'flaky = box.test.flaky.flaky_pytest_plugin'
+                'flaky = flaky.flaky_pytest_plugin'
             ]
         },
         keywords='nose pytest plugin flaky tests rerun retry',

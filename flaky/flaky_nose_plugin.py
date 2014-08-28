@@ -6,7 +6,7 @@ import logging
 from nose.plugins import Plugin
 from nose.result import TextTestResult
 
-from box.test.flaky._flaky_plugin import _FlakyPlugin
+from flaky._flaky_plugin import _FlakyPlugin
 
 
 class FlakyPlugin(_FlakyPlugin, Plugin):
