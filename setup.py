@@ -9,7 +9,7 @@ def main():
     base_dir = dirname(__file__)
     setup(
         name='flaky',
-        version='0.4.0',
+        version='1.0.0',
         description='Plugin for nose or py.test that automatically reruns flaky tests.',
         long_description=open(join(base_dir, 'README.rst')).read(),
         author='Box',
@@ -17,7 +17,6 @@ def main():
         url='https://github.com/box/flaky',
         license=open(join(base_dir, 'LICENSE')).read(),
         packages=find_packages(exclude=['test']),
-        namespace_packages=['box', 'box.test'],
         test_suite='test',
         tests_require=['pytest', 'nose'],
         zip_safe=False,
