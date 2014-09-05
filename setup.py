@@ -4,6 +4,24 @@ from __future__ import unicode_literals
 from setuptools import setup, find_packages
 from os.path import dirname, join
 
+CLASSIFIERS = [
+    'Development Status :: 4 - Beta',
+    'Intended Audience :: Developers',
+    'License :: OSI Approved :: Apache Software License',
+    'Topic :: Software Development :: Testing',
+    'Programming Language :: Python',
+    'Programming Language :: Python :: 2.6',
+    'Programming Language :: Python :: 2.7',
+    'Programming Language :: Python :: 3.3',
+    'Programming Language :: Python :: 3.4',
+    'Programming Language :: Python :: Implementation :: CPython',
+    'Programming Language :: Python :: Implementation :: PyPy',
+    'Operating System :: OS Independent',
+    'Operating System :: POSIX',
+    'Operating System :: Microsoft :: Windows',
+    'Operating System :: MacOS :: MacOS X',
+]
+
 
 def main():
     base_dir = dirname(__file__)
@@ -29,6 +47,7 @@ def main():
             ]
         },
         keywords='nose pytest plugin flaky tests rerun retry',
+        classifiers=CLASSIFIERS,
     )
 
 
