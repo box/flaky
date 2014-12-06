@@ -51,7 +51,7 @@ To add an upstream source for this project, type:
 
 .. code-block:: console
 
-    git remote add upstream git@github.com:box/genty.git
+    git remote add upstream git@github.com:box/flaky.git
 
 This will come in useful later.
 
