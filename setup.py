@@ -27,7 +27,7 @@ def main():
     base_dir = dirname(__file__)
     setup(
         name='flaky',
-        version='1.0.0',
+        version='1.0.1',
         description='Plugin for nose or py.test that automatically reruns flaky tests.',
         long_description=open(join(base_dir, 'README.rst')).read(),
         author='Box',
