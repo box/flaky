@@ -6,7 +6,8 @@ from mock import call, MagicMock, patch
 from flaky.flaky_decorator import flaky
 from flaky import flaky_nose_plugin
 from flaky.names import FlakyNames
-from flaky.utils import TestCase, unicode_type
+from flaky.utils import unicode_type
+from test.base_test_case import TestCase
 
 
 class TestFlakyPlugin(TestCase):

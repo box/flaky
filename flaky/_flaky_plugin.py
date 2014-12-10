@@ -3,7 +3,7 @@
 from __future__ import unicode_literals
 from io import StringIO
 from flaky.names import FlakyNames
-from flaky.utils import unicode_type
+from flaky.utils import ensure_unicode_string
 
 
 # pylint:disable=R0921
@@ -21,14 +21,14 @@ class _FlakyPlugin(object):
         printed by the plugin's report method.
         """
         self._stream.writelines([
-            unicode_type(test_method_name),
+            ensure_unicode_string(test_method_name),
             message,
             '\n\t',
-            unicode_type(err[0]),
+            ensure_unicode_string(err[0]),
             '\n\t',
-            unicode_type(err[1]),
+            ensure_unicode_string(err[1]),
             '\n\t',
-            unicode_type(err[2]),
+            ensure_unicode_string(err[2]),
             '\n',
         ])
 
@@ -149,7 +149,7 @@ class _FlakyPlugin(object):
         flaky = self._get_flaky_attributes(test_method)
         min_passes = flaky[FlakyNames.MIN_PASSES]
         self._stream.writelines([
-            unicode_type(test_method_name),
+            ensure_unicode_string(test_method_name),
             ' passed {0} out of the required {1} times. '.format(
                 current_passes,
                 min_passes,

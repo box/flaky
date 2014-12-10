@@ -3,7 +3,7 @@
 from __future__ import unicode_literals
 from flaky.flaky_decorator import flaky
 from flaky.names import FlakyNames
-from flaky.utils import TestCase
+from test.base_test_case import TestCase
 
 
 class TestFlakyDecorator(TestCase):

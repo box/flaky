@@ -2,6 +2,7 @@
 
 from __future__ import unicode_literals
 import logging
+from nose.failure import Failure
 
 from nose.plugins import Plugin
 from nose.result import TextTestResult
@@ -114,8 +115,9 @@ class FlakyPlugin(_FlakyPlugin, Plugin):
             :class:`nose.case.Test`
         """
         # pylint:disable=invalid-name
-        test_class = test.test
-        self._copy_flaky_attributes(test, test_class)
+        if not isinstance(test.test, Failure):
+            test_class = test.test
+            self._copy_flaky_attributes(test, test_class)
 
     def _rerun_test(self, test):
         """Base class override. Rerun a flaky test."""

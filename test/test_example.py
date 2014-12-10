@@ -6,7 +6,7 @@ from __future__ import unicode_literals
 # a live tutorial, showing the various features in action.
 
 from flaky import flaky
-from flaky.utils import TestCase, expectedFailure, skip
+from test.base_test_case import TestCase, expectedFailure, skip
 
 
 class ExampleTests(TestCase):
