@@ -11,13 +11,6 @@ from _pytest.runner import CallInfo, Skipped
 from flaky._flaky_plugin import _FlakyPlugin
 
 
-def pytest_configure(config):
-    """
-    Pytest hooks to get access to the runner plugin
-    """
-    PLUGIN.runner = config.pluginmanager.getplugin("runner")
-
-
 def pytest_runtest_protocol(item, nextitem):
     """
     Pytest hook to override how tests are run.
@@ -37,6 +30,29 @@ def pytest_terminal_summary(terminalreporter):
     PLUGIN.terminal_summary(terminalreporter)
 
 
+def pytest_addoption(parser):
+    """
+    Pytest hook to add an option to the argument parser.
+    :param parser:
+        Parser for command line arguments and ini-file values.
+    :type parser:
+        :class:`Parser`
+    """
+    PLUGIN.add_report_option(parser.addoption)
+
+
+def pytest_configure(config):
+    """
+    Pytest hook to get information about how the test run has been configured.
+    :param config:
+        The pytest configuration object for this test run.
+    :type config:
+        :class:`Configuration`
+    """
+    PLUGIN.flaky_report = config.option.flaky_report
+    PLUGIN.runner = config.pluginmanager.getplugin("runner")
+
+
 class FlakyPlugin(_FlakyPlugin):
     """
     Plugin for py.test that allows retrying flaky tests.
@@ -44,6 +60,7 @@ class FlakyPlugin(_FlakyPlugin):
     """
     runner = None
     _info = None
+    flaky_report = True
 
     def run_test(self, item, nextitem):
         """
@@ -138,7 +155,8 @@ class FlakyPlugin(_FlakyPlugin):
         :type stream:
             :class: `TerminalReporter`
         """
-        self._add_flaky_report(stream)
+        if self.flaky_report:
+            self._add_flaky_report(stream)
 
     @staticmethod
     def _get_test_method_name(test):

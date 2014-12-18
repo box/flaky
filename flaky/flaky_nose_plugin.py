@@ -3,9 +3,9 @@
 from __future__ import unicode_literals
 import logging
 from nose.failure import Failure
-
 from nose.plugins import Plugin
 from nose.result import TextTestResult
+import os
 
 from flaky._flaky_plugin import _FlakyPlugin
 
@@ -20,6 +20,25 @@ class FlakyPlugin(_FlakyPlugin, Plugin):
         super(FlakyPlugin, self).__init__()
         self._logger = logging.getLogger('nose.plugins.flaky')
         self._flaky_result = TextTestResult(self._stream, [], 0)
+        self._flaky_report = True
+
+    def options(self, parser, env=os.environ):
+        """
+        Base class override.
+        Add options to the nose argument parser.
+        """
+        super(FlakyPlugin, self).options(parser, env=env)
+        self.add_report_option(parser.add_option)
+
+    def configure(self, options, conf):
+        """
+        Base class override.
+
+        """
+        super(FlakyPlugin, self).configure(options, conf)
+        if not self.enabled:
+            return
+        self._flaky_report = options.flaky_report
 
     def handleError(self, test, err):
         """
@@ -81,18 +100,6 @@ class FlakyPlugin(_FlakyPlugin, Plugin):
         # pylint:disable=invalid-name
         return self._handle_test_success(test)
 
-    def _add_flaky_report(self, stream):
-        """
-        Baseclass override. Write details about flaky tests to the test report.
-        :param stream:
-            The test stream to which the report can be written.
-        :type stream:
-            `file`
-        """
-        stream.write('===Flaky Test Report===\n\n')
-        stream.write(self._stream.getvalue())
-        stream.write('\n===End Flaky Test Report===\n')
-
     def report(self, stream):
         """
         Baseclass override. Write details about flaky tests to the test report.
@@ -101,7 +108,8 @@ class FlakyPlugin(_FlakyPlugin, Plugin):
         :type stream:
             `file`
         """
-        self._add_flaky_report(stream)
+        if self._flaky_report:
+            self._add_flaky_report(stream)
 
     def prepareTestCase(self, test):
         """
