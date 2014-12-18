@@ -167,11 +167,13 @@ class _FlakyPlugin(object):
             self._stream.write('Success!\n')
             return False
 
-    def add_report_option(self, add_option):
+    @staticmethod
+    def add_report_option(add_option):
         """
         Add an option to the test runner to suppress the flaky report.
         :param add_option:
-            A function that can add an option to the test runner. Its argspec should equal that of argparse.add_option.
+            A function that can add an option to the test runner.
+            Its argspec should equal that of argparse.add_option.
         :type add_option:
             `callable`
         """
@@ -180,7 +182,8 @@ class _FlakyPlugin(object):
             action='store_false',
             dest='flaky_report',
             default=True,
-            help="Suppress the report at the end of the run detailing flaky test results.",
+            help="Suppress the report at the end of the "
+                 "run detailing flaky test results.",
         )
 
     def _add_flaky_report(self, stream):

@@ -27,6 +27,7 @@ class FlakyPlugin(_FlakyPlugin, Plugin):
         Base class override.
         Add options to the nose argument parser.
         """
+        # pylint:disable=dangerous-default-value
         super(FlakyPlugin, self).options(parser, env=env)
         self.add_report_option(parser.add_option)
 
