@@ -32,10 +32,7 @@ class FlakyPlugin(_FlakyPlugin, Plugin):
         self.add_report_option(parser.add_option)
 
     def configure(self, options, conf):
-        """
-        Base class override.
-
-        """
+        """Base class override."""
         super(FlakyPlugin, self).configure(options, conf)
         if not self.enabled:
             return
