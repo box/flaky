@@ -2,6 +2,7 @@
 
 from __future__ import unicode_literals
 import logging
+from optparse import OptionGroup
 from nose.failure import Failure
 from nose.plugins import Plugin
 from nose.result import TextTestResult
@@ -21,6 +22,9 @@ class FlakyPlugin(_FlakyPlugin, Plugin):
         self._logger = logging.getLogger('nose.plugins.flaky')
         self._flaky_result = TextTestResult(self._stream, [], 0)
         self._flaky_report = True
+        self._force_flaky = False
+        self._max_runs = None
+        self._min_passes = None
 
     def options(self, parser, env=os.environ):
         """
@@ -30,6 +34,10 @@ class FlakyPlugin(_FlakyPlugin, Plugin):
         # pylint:disable=dangerous-default-value
         super(FlakyPlugin, self).options(parser, env=env)
         self.add_report_option(parser.add_option)
+        group = OptionGroup(
+            parser, "Force flaky", "Force all tests to be flaky.")
+        self.add_force_flaky_options(group.add_option)
+        parser.add_option_group(group)
 
     def configure(self, options, conf):
         """Base class override."""
@@ -37,6 +45,9 @@ class FlakyPlugin(_FlakyPlugin, Plugin):
         if not self.enabled:
             return
         self._flaky_report = options.flaky_report
+        self._force_flaky = options.force_flaky
+        self._max_runs = options.max_runs
+        self._min_passes = options.min_passes
 
     def handleError(self, test, err):
         """
@@ -124,6 +135,9 @@ class FlakyPlugin(_FlakyPlugin, Plugin):
         if not isinstance(test.test, Failure):
             test_class = test.test
             self._copy_flaky_attributes(test, test_class)
+            if self._force_flaky and not self._has_flaky_attributes(test):
+                self._make_test_method_flaky(
+                    test, self._max_runs, self._min_passes)
 
     def _rerun_test(self, test):
         """Base class override. Rerun a flaky test."""

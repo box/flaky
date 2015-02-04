@@ -19,7 +19,7 @@ class ExampleTests(TestCase):
     @expectedFailure
     def test_non_flaky_failing_thing(self):
         """Flaky will also not interact with this test"""
-        self.assertFalse(True)
+        self.assertEqual(0, 1)
 
     @flaky(3, 2)
     def test_flaky_thing_that_fails_then_succeeds(self):
@@ -39,7 +39,7 @@ class ExampleTests(TestCase):
         """
         self._threshold += 1
         if self._threshold == 1:
-            self.assertFalse(True)
+            self.assertEqual(0, 1)
 
     @flaky(2, 2)
     def test_flaky_thing_that_always_passes(self):
@@ -50,7 +50,7 @@ class ExampleTests(TestCase):
     @flaky()
     def test_flaky_thing_that_always_fails(self):
         """Flaky will run this test twice.  Both will fail."""
-        self.assertFalse(True)
+        self.assertEqual(0, 1)
 
 
 @flaky
