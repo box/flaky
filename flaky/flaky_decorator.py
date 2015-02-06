@@ -2,7 +2,7 @@
 
 from __future__ import unicode_literals
 
-from flaky.names import FlakyNames
+from flaky import defaults
 
 
 def flaky(max_runs=None, min_passes=None):
@@ -39,12 +39,7 @@ def flaky(max_runs=None, min_passes=None):
     if max_runs < min_passes:
         raise ValueError('min_passes cannot be greater than max_runs!')
 
-    attrib = {
-        FlakyNames.MAX_RUNS: max_runs,
-        FlakyNames.MIN_PASSES: min_passes,
-        FlakyNames.CURRENT_RUNS: 0,
-        FlakyNames.CURRENT_PASSES: 0,
-    }
+    attrib = defaults.default_flaky_attributes(max_runs, min_passes)
 
     def wrapper(wrapped_object):
         for name, value in attrib.items():

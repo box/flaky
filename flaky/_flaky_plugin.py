@@ -2,6 +2,7 @@
 
 from __future__ import unicode_literals
 from io import StringIO
+from flaky import defaults
 from flaky.names import FlakyNames
 from flaky.utils import ensure_unicode_string
 
@@ -186,6 +187,45 @@ class _FlakyPlugin(object):
                  "run detailing flaky test results.",
         )
 
+    @staticmethod
+    def add_force_flaky_options(add_option):
+        """
+        Add options to the test runner that force all tests to be flaky.
+        :param add_option:
+            A function that can add an option to the test runner.
+            Its argspec should equal that of argparse.add_option.
+        :type add_option:
+            `callable`
+        """
+        add_option(
+            '--force-flaky',
+            action="store_true",
+            dest="force_flaky",
+            default=False,
+            help="If this option is specified, we will treat all tests as "
+                 "flaky."
+        )
+        add_option(
+            '--max-runs',
+            action="store",
+            dest="max_runs",
+            type="int",
+            default=2,
+            help="If --force-flaky is specified, we will run each test at "
+                 "most this many times (unless the test has its own flaky "
+                 "decorator)."
+        )
+        add_option(
+            '--min-passes',
+            action="store",
+            dest="min_passes",
+            type="int",
+            default=1,
+            help="If --force-flaky is specified, we will run each test at "
+                 "least this many times (unless the test has its own flaky "
+                 "decorator)."
+        )
+
     def _add_flaky_report(self, stream):
         """
         Baseclass override. Write details about flaky tests to the test report.
@@ -258,6 +298,25 @@ class _FlakyPlugin(object):
             varies
         """
         test_method.__dict__[flaky_attribute] = value
+
+    @classmethod
+    def _has_flaky_attributes(cls, test):
+        """
+        Returns true if the test method in question is marked as flaky.
+        :param test:
+            The test that is being prepared to run
+        :type test:
+            :class:`Function`
+        :return:
+        :rtype:
+            `bool`
+        """
+        test_method, _ = cls._get_test_method_and_name(test)
+        current_runs = cls._get_flaky_attribute(
+            test_method,
+            FlakyNames.CURRENT_RUNS
+        )
+        return current_runs is not None
 
     @classmethod
     def _get_flaky_attributes(cls, test_method):
@@ -349,3 +408,26 @@ class _FlakyPlugin(object):
             `tuple` of `callable`, `unicode`
         """
         raise NotImplementedError
+
+    @classmethod
+    def _make_test_method_flaky(cls, test, max_runs, min_passes):
+        """
+        Make a given test method flaky.
+        :param test:
+            The test in question.
+        :type test:
+            :class:`Function`
+        :param max_runs:
+            The value of the FlakyNames.MAX_RUNS attribute to use.
+        :type max_runs:
+            `int`
+        :param min_passes:
+            The value of the FlakyNames.MIN_PASSES attribute to use.
+        :type min_passes:
+            `int`
+        """
+        attrib_dict = defaults.default_flaky_attributes(max_runs, min_passes)
+        test_method, _ = cls._get_test_method_and_name(test)
+        if test_method is not None:
+            for attr, value in attrib_dict.items():
+                cls._set_flaky_attribute(test_method, attr, value)

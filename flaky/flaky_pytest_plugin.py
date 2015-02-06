@@ -40,6 +40,10 @@ def pytest_addoption(parser):
     """
     PLUGIN.add_report_option(parser.addoption)
 
+    group = parser.getgroup(
+        "Force flaky", "Force all tests to be flaky.")
+    PLUGIN.add_force_flaky_options(group.addoption)
+
 
 def pytest_configure(config):
     """
@@ -50,6 +54,9 @@ def pytest_configure(config):
         :class:`Configuration`
     """
     PLUGIN.flaky_report = config.option.flaky_report
+    PLUGIN.force_flaky = config.option.force_flaky
+    PLUGIN.max_runs = config.option.max_runs
+    PLUGIN.min_passes = config.option.min_passes
     PLUGIN.runner = config.pluginmanager.getplugin("runner")
 
 
@@ -61,6 +68,9 @@ class FlakyPlugin(_FlakyPlugin):
     runner = None
     _info = None
     flaky_report = True
+    force_flaky = False
+    max_runs = None
+    min_passes = None
 
     def run_test(self, item, nextitem):
         """
@@ -77,6 +87,8 @@ class FlakyPlugin(_FlakyPlugin):
             :class:`Function`
         """
         self._copy_flaky_attributes(item, item.instance)
+        if self.force_flaky and not self._has_flaky_attributes(item):
+            self._make_test_method_flaky(item, self.max_runs, self.min_passes)
         patched_call_runtest_hook = self.runner.call_runtest_hook
         try:
             self.runner.call_runtest_hook = self.call_runtest_hook
