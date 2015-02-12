@@ -56,7 +56,7 @@ class _FlakyPlugin(object):
             `bool`
         """
         try:
-            test_method, test_method_name = self._get_test_method_and_name(
+            test_method, test_method_name = self._get_test_callable_and_name(
                 test
             )
         except AttributeError:
@@ -124,7 +124,7 @@ class _FlakyPlugin(object):
         :rtype:
             `bool`
         """
-        test_method, test_method_name = self._get_test_method_and_name(test)
+        test_method, test_method_name = self._get_test_callable_and_name(test)
         current_runs = self._get_flaky_attribute(
             test_method,
             FlakyNames.CURRENT_RUNS
@@ -248,7 +248,7 @@ class _FlakyPlugin(object):
         :type test:
             :class:`nose.case.Test`
         """
-        test_method, _ = cls._get_test_method_and_name(test)
+        test_method, _ = cls._get_test_callable_and_name(test)
         for attr, value in cls._get_flaky_attributes(test_class).items():
             if value is not None:
                 attr_already_set = hasattr(test_method, attr)
@@ -311,7 +311,7 @@ class _FlakyPlugin(object):
         :rtype:
             `bool`
         """
-        test_method, _ = cls._get_test_method_and_name(test)
+        test_method, _ = cls._get_test_callable_and_name(test)
         current_runs = cls._get_flaky_attribute(
             test_method,
             FlakyNames.CURRENT_RUNS
@@ -395,28 +395,28 @@ class _FlakyPlugin(object):
         return flaky[FlakyNames.CURRENT_PASSES] >= flaky[FlakyNames.MIN_PASSES]
 
     @classmethod
-    def _get_test_method_and_name(cls, test):
+    def _get_test_callable_and_name(cls, test):
         """
-        Get the test method and test method name from the test.
+        Get the test callable and test callable name from the test.
         :param test:
             The test that has raised an error or succeeded
         :type test:
-            :class:`nose.case.Test`
+            :class:`nose.case.Test` or :class:`pytest.Test`
         :return:
-            The test method (and its name) that is being run by the test
+            The test callable (and its name) that is being run by the test
         :rtype:
             `tuple` of `callable`, `unicode`
         """
         raise NotImplementedError
 
     @classmethod
-    def _make_test_method_flaky(cls, test, max_runs, min_passes):
+    def _make_test_callable_flaky(cls, test, max_runs, min_passes):
         """
-        Make a given test method flaky.
+        Make a given test callable flaky.
         :param test:
             The test in question.
         :type test:
-            :class:`Function`
+            :class:`nose.case.Test` or :class:`pytest.Test`
         :param max_runs:
             The value of the FlakyNames.MAX_RUNS attribute to use.
         :type max_runs:
@@ -427,7 +427,7 @@ class _FlakyPlugin(object):
             `int`
         """
         attrib_dict = defaults.default_flaky_attributes(max_runs, min_passes)
-        test_method, _ = cls._get_test_method_and_name(test)
+        test_method, _ = cls._get_test_callable_and_name(test)
         if test_method is not None:
             for attr, value in attrib_dict.items():
                 cls._set_flaky_attribute(test_method, attr, value)

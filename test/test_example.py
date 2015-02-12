@@ -65,3 +65,7 @@ class ExampleFlakyTests(TestCase):
         self._threshold += 1
         if self._threshold < 1:
             raise Exception("Threshold is not high enough.")
+
+
+def test_function():
+    pass
