@@ -401,7 +401,7 @@ class _FlakyPlugin(object):
         :param test:
             The test that has raised an error or succeeded
         :type test:
-            :class:`nose.case.Test` or :class:`pytest.Test`
+            :class:`nose.case.Test` or :class:`Function`
         :return:
             The test callable (and its name) that is being run by the test
         :rtype:
@@ -416,7 +416,7 @@ class _FlakyPlugin(object):
         :param test:
             The test in question.
         :type test:
-            :class:`nose.case.Test` or :class:`pytest.Test`
+            :class:`nose.case.Test` or :class:`Function`
         :param max_runs:
             The value of the FlakyNames.MAX_RUNS attribute to use.
         :type max_runs:

@@ -152,7 +152,7 @@ class FlakyPlugin(_FlakyPlugin, Plugin):
         :type test:
             :class:`nose.case.Test`
         :return:
-            The name of the test method that is being run by the test
+            The name of the test callable that is being run by the test
         :rtype:
             `unicode`
         """
@@ -164,7 +164,7 @@ class FlakyPlugin(_FlakyPlugin, Plugin):
     @classmethod
     def _get_test_callable_and_name(cls, test):
         """
-        Get the test callable and test method name from the test.
+        Get the test callable and test callable name from the test.
         :param test:
             The test that has raised an error or succeeded
         :type test:
@@ -174,9 +174,9 @@ class FlakyPlugin(_FlakyPlugin, Plugin):
         :rtype:
             `tuple` of `callable`, `unicode`
         """
-        method_name = cls._get_test_callable_name(test)
-        if hasattr(test.test, method_name):
-            test_callable = getattr(test.test, method_name)
+        callable_name = cls._get_test_callable_name(test)
+        if hasattr(test.test, callable_name):
+            test_callable = getattr(test.test, callable_name)
         else:
             test_callable = test.test
-        return test_callable, method_name
+        return test_callable, callable_name

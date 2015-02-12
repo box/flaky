@@ -177,13 +177,13 @@ class FlakyPlugin(_FlakyPlugin):
     @staticmethod
     def _get_test_callable_name(test):
         """
-        Get the name of the test method from the test.
+        Get the name of the test callable from the test.
         :param test:
             The test that has raised an error or succeeded
         :type test:
             :class:`Function`
         :return:
-            The name of the test method that is being run by the test
+            The name of the test callable that is being run by the test
         :rtype:
             `unicode`
         """
@@ -192,7 +192,7 @@ class FlakyPlugin(_FlakyPlugin):
     @classmethod
     def _get_test_callable_and_name(cls, test):
         """
-        Get the test callable and test method name from the test.
+        Get the test callable and test callable name from the test.
         :param test:
             The test that has raised an error or succeeded
         :type test:
