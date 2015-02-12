@@ -2,7 +2,8 @@
 
 from __future__ import unicode_literals
 from io import StringIO
-from mock import call, MagicMock, patch
+from mock import call, MagicMock, Mock, patch
+from flaky import defaults
 from flaky.flaky_decorator import flaky
 from flaky import flaky_nose_plugin
 from flaky.names import FlakyNames
@@ -111,6 +112,27 @@ class TestFlakyPlugin(TestCase):
         self._test_flaky_plugin_handles_failure_or_error(
             current_errors=[self._mock_error]
         )
+
+    def test_flaky_plugin_handles_bare_test(self):
+        self._mock_test_names = self._mock_test_method_name
+        self._mock_test.test = Mock()
+        self._expect_call_test_address()
+        attrib = defaults.default_flaky_attributes(2, 1)
+        for name, value in attrib.items():
+            setattr(
+                self._mock_test.test,
+                name,
+                value,
+            )
+        delattr(self._mock_test, self._mock_test_method_name)
+        self.assertTrue(self._flaky_plugin.handleError(
+            self._mock_test_case,
+            self._mock_error,
+        ))
+        self.assertFalse(self._flaky_plugin.handleError(
+            self._mock_test_case,
+            self._mock_error,
+        ))
 
     def _expect_call_test_address(self):
         self._mock_test_case.address.return_value = (

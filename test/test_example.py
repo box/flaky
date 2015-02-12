@@ -68,4 +68,16 @@ class ExampleFlakyTests(TestCase):
 
 
 def test_function():
+    """
+    Nose will import this function and wrap it in a :class:`FunctionTestCase`.
+    It's included in the example to make sure flaky handles it correctly.
+    """
     pass
+
+
+@flaky
+def test_flaky_function(param=[]):
+    # pylint:disable=dangerous-default-value
+    param_length = len(param)
+    param.append(None)
+    assert param_length == 1

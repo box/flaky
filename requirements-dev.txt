@@ -4,4 +4,5 @@ nose
 pep8
 pylint
 pytest
+pytest-cov
 tox

@@ -124,8 +124,8 @@ class FlakyPlugin(_FlakyPlugin, Plugin):
         """
         Baseclass override. Called right before a test case is run.
 
-        If the test class is marked flaky and the test method is not, copy the
-        flaky attributes from the test class to the test method.
+        If the test class is marked flaky and the test callable is not, copy
+        the flaky attributes from the test class to the test callable.
         :param test:
             The test that is being prepared to run
         :type test:
@@ -146,7 +146,7 @@ class FlakyPlugin(_FlakyPlugin, Plugin):
     @staticmethod
     def _get_test_callable_name(test):
         """
-        Get the name of the test method from the test.
+        Get the name of the test callable from the test.
         :param test:
             The test that has raised an error or succeeded
         :type test:
@@ -156,10 +156,10 @@ class FlakyPlugin(_FlakyPlugin, Plugin):
         :rtype:
             `unicode`
         """
-        _, _, class_and_method_name = test.address()
-        first_dot_index = class_and_method_name.find('.')
-        test_method_name = class_and_method_name[first_dot_index + 1:]
-        return test_method_name
+        _, _, class_and_callable_name = test.address()
+        first_dot_index = class_and_callable_name.find('.')
+        test_callable_name = class_and_callable_name[first_dot_index + 1:]
+        return test_callable_name
 
     @classmethod
     def _get_test_callable_and_name(cls, test):
@@ -175,8 +175,9 @@ class FlakyPlugin(_FlakyPlugin, Plugin):
             `tuple` of `callable`, `unicode`
         """
         callable_name = cls._get_test_callable_name(test)
-        if hasattr(test.test, callable_name):
-            test_callable = getattr(test.test, callable_name)
-        else:
-            test_callable = test.test
+        test_callable = getattr(
+            test.test,
+            callable_name,
+            getattr(test.test, 'test', test.test),
+        )
         return test_callable, callable_name

@@ -202,13 +202,13 @@ class FlakyPlugin(_FlakyPlugin):
         :rtype:
             `tuple` of `callable`, `unicode`
         """
-        method_name = cls._get_test_callable_name(test)
-        if hasattr(test.instance, method_name):
-            return getattr(test.instance, method_name), method_name
-        elif hasattr(test.module, method_name):
-            return getattr(test.module, method_name), method_name
+        callable_name = cls._get_test_callable_name(test)
+        if hasattr(test.instance, callable_name):
+            return getattr(test.instance, callable_name), callable_name
+        elif hasattr(test.module, callable_name):
+            return getattr(test.module, callable_name), callable_name
         else:
-            return None, method_name
+            return None, callable_name
 
     def _rerun_test(self, test):
         """Base class override. Rerun a flaky test."""
