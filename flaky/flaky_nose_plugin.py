@@ -124,8 +124,8 @@ class FlakyPlugin(_FlakyPlugin, Plugin):
         """
         Baseclass override. Called right before a test case is run.
 
-        If the test class is marked flaky and the test method is not, copy the
-        flaky attributes from the test class to the test method.
+        If the test class is marked flaky and the test callable is not, copy
+        the flaky attributes from the test class to the test callable.
         :param test:
             The test that is being prepared to run
         :type test:
@@ -136,7 +136,7 @@ class FlakyPlugin(_FlakyPlugin, Plugin):
             test_class = test.test
             self._copy_flaky_attributes(test, test_class)
             if self._force_flaky and not self._has_flaky_attributes(test):
-                self._make_test_method_flaky(
+                self._make_test_callable_flaky(
                     test, self._max_runs, self._min_passes)
 
     def _rerun_test(self, test):
@@ -144,35 +144,40 @@ class FlakyPlugin(_FlakyPlugin, Plugin):
         test.run(self._flaky_result)
 
     @staticmethod
-    def _get_test_method_name(test):
+    def _get_test_callable_name(test):
         """
-        Get the name of the test method from the test.
+        Get the name of the test callable from the test.
         :param test:
             The test that has raised an error or succeeded
         :type test:
             :class:`nose.case.Test`
         :return:
-            The name of the test method that is being run by the test
+            The name of the test callable that is being run by the test
         :rtype:
             `unicode`
         """
-        _, _, class_and_method_name = test.address()
-        first_dot_index = class_and_method_name.index('.')
-        test_method_name = class_and_method_name[first_dot_index + 1:]
-        return test_method_name
+        _, _, class_and_callable_name = test.address()
+        first_dot_index = class_and_callable_name.find('.')
+        test_callable_name = class_and_callable_name[first_dot_index + 1:]
+        return test_callable_name
 
     @classmethod
-    def _get_test_method_and_name(cls, test):
+    def _get_test_callable_and_name(cls, test):
         """
-        Get the test method and test method name from the test.
+        Get the test callable and test callable name from the test.
         :param test:
             The test that has raised an error or succeeded
         :type test:
             :class:`nose.case.Test`
         :return:
-            The test method (and its name) that is being run by the test
+            The test callable (and its name) that is being run by the test
         :rtype:
             `tuple` of `callable`, `unicode`
         """
-        method_name = cls._get_test_method_name(test)
-        return getattr(test.test, method_name), method_name
+        callable_name = cls._get_test_callable_name(test)
+        test_callable = getattr(
+            test.test,
+            callable_name,
+            getattr(test.test, 'test', test.test),
+        )
+        return test_callable, callable_name

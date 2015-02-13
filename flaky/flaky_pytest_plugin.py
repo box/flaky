@@ -88,7 +88,11 @@ class FlakyPlugin(_FlakyPlugin):
         """
         self._copy_flaky_attributes(item, item.instance)
         if self.force_flaky and not self._has_flaky_attributes(item):
-            self._make_test_method_flaky(item, self.max_runs, self.min_passes)
+            self._make_test_callable_flaky(
+                item,
+                self.max_runs,
+                self.min_passes,
+            )
         patched_call_runtest_hook = self.runner.call_runtest_hook
         try:
             self.runner.call_runtest_hook = self.call_runtest_hook
@@ -171,40 +175,40 @@ class FlakyPlugin(_FlakyPlugin):
             self._add_flaky_report(stream)
 
     @staticmethod
-    def _get_test_method_name(test):
+    def _get_test_callable_name(test):
         """
-        Get the name of the test method from the test.
+        Get the name of the test callable from the test.
         :param test:
             The test that has raised an error or succeeded
         :type test:
             :class:`Function`
         :return:
-            The name of the test method that is being run by the test
+            The name of the test callable that is being run by the test
         :rtype:
             `unicode`
         """
         return test.name
 
     @classmethod
-    def _get_test_method_and_name(cls, test):
+    def _get_test_callable_and_name(cls, test):
         """
-        Get the test method and test method name from the test.
+        Get the test callable and test callable name from the test.
         :param test:
             The test that has raised an error or succeeded
         :type test:
             :class:`Function`
         :return:
-            The test method (and its name) that is being run by the test
+            The test callable (and its name) that is being run by the test
         :rtype:
             `tuple` of `callable`, `unicode`
         """
-        method_name = cls._get_test_method_name(test)
-        if hasattr(test.instance, method_name):
-            return getattr(test.instance, method_name), method_name
-        elif hasattr(test.module, method_name):
-            return getattr(test.module, method_name), method_name
+        callable_name = cls._get_test_callable_name(test)
+        if hasattr(test.instance, callable_name):
+            return getattr(test.instance, callable_name), callable_name
+        elif hasattr(test.module, callable_name):
+            return getattr(test.module, callable_name), callable_name
         else:
-            return None, method_name
+            return None, callable_name
 
     def _rerun_test(self, test):
         """Base class override. Rerun a flaky test."""
