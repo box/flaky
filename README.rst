@@ -10,23 +10,6 @@ flaky
 .. image:: https://pypip.in/d/flaky/badge.png
     :target: https://pypi.python.org/pypi/flaky
 
-Upcoming Breaking Change!
--------------------------
-
-When Flaky was released through version 0.3.0, it was released under the namespace
-box.test. In version 0.4.0, importing flaky became easier:
-
-.. code-block:: python
-
-    from flaky import flaky
-
-vs.
-
-.. code-block:: python
-
-    from box.test.flaky import flaky
-
-In version 1.0.0, however, you will no longer be able to import flaky from box.test.
 
 About
 -----
@@ -43,7 +26,11 @@ Like any nose plugin, flaky can be activated via the command line:
 
     nosetests --with-flaky
 
-To mark a test as flaky, simply decorate it with @flaky:
+To mark a test as flaky, simply import flaky and decorate the test with @flaky:
+
+.. code-block:: python
+
+    from flaky import flaky
 
 .. code-block:: python
 
