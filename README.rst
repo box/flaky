@@ -122,7 +122,7 @@ To install, simply:
 Contributing
 ------------
 
-See `CONTRIBUTING <https://github.com/box/flaky/blob/master/CONTRIBUTING.rst>`_.
+See `CONTRIBUTING.rst <https://github.com/box/flaky/blob/master/CONTRIBUTING.rst>`_.
 
 
 Setup
