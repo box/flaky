@@ -20,11 +20,8 @@ Ideally, tests reliably pass or fail, but sometimes test fixtures must rely on c
 reliable. With flaky, instead of removing those tests or marking them to @skip, they can be automatically
 retried.
 
-Like any nose plugin, flaky can be activated via the command line:
-
-.. code-block:: console
-
-    nosetests --with-flaky
+Marking tests flaky
+~~~~~~~~~~~~~~~~~~~
 
 To mark a test as flaky, simply import flaky and decorate the test with @flaky:
 
@@ -54,6 +51,9 @@ run max_runs times without passing min_passes times, it's considered a failure.
         result = get_result_from_flaky_doubler(value_to_double)
         self.assertEqual(result, value_to_double * 2, 'Result doubled incorrectly.')
 
+Marking a class flaky
+~~~~~~~~~~~~~~~~~~~~~
+
 In addition to marking a single test flaky, entire test cases can be marked flaky:
 
 .. code-block:: python
@@ -74,7 +74,40 @@ In addition to marking a single test flaky, entire test cases can be marked flak
 The @flaky class decorator will mark test_flaky_doubler as flaky, but it won't override the 3 max_runs
 for test_flaky_tripler (from the decorator on that test method).
 
-Additional usage examples are in the code - see test/test_example.py
+Activating the plugin
+~~~~~~~~~~~~~~~~~~~~~
+
+Like any nose plugin, flaky can be activated via the command line:
+
+.. code-block:: console
+
+    nosetests --with-flaky
+
+With py.test, flaky will automatically run. It can, however be disabled via the command line:
+
+.. code-block:: console
+
+    py.test no:flaky
+
+Command line arguments
+~~~~~~~~~~~~~~~~~~~~~~
+
+No Flaky Report
++++++++++++++++
+
+Pass ``--no-flaky-report`` to suppress the report at the end of the run detailing flaky test results.
+
+
+Force Flaky
++++++++++++
+
+Pass ``--force-flaky`` to treat all tests as flaky.
+
+Pass ``--max-runs=MAX_RUNS`` and/or ``--min-passes=MIN_PASSES`` to control the behavior of flaky if ``--force-flaky``
+is specified. Flaky decorators on individual tests will override these defaults.
+
+
+*Additional usage examples are in the code - see test/test_example.py*
 
 Installation
 ------------
@@ -89,7 +122,7 @@ To install, simply:
 Contributing
 ------------
 
-See `CONTRIBUTING <https://github.com/box/flaky/blob/master/CONTRIBUTING.rst>`_.
+See `CONTRIBUTING.rst <https://github.com/box/flaky/blob/master/CONTRIBUTING.rst>`_.
 
 
 Setup
