@@ -16,13 +16,11 @@ class TestFlakyPlugin(TestCase):
         super(TestFlakyPlugin, self).setUp()
 
         test_base_mod = 'flaky._flaky_plugin'
-        self._mock_test_result = MagicMock()
+        self._mock_test_result = None
         self._mock_stream = MagicMock(spec=StringIO)
-        with patch.object(flaky_nose_plugin, 'TextTestResult') as flaky_result:
-            with patch(test_base_mod + '.StringIO') as string_io:
-                string_io.return_value = self._mock_stream
-                flaky_result.return_value = self._mock_test_result
-                self._flaky_plugin = flaky_nose_plugin.FlakyPlugin()
+        with patch(test_base_mod + '.StringIO') as string_io:
+            string_io.return_value = self._mock_stream
+            self._flaky_plugin = flaky_nose_plugin.FlakyPlugin()
         self._mock_test = MagicMock(name='flaky_plugin_test')
         self._mock_test_case = MagicMock(
             name='flaky_plugin_test_case',
