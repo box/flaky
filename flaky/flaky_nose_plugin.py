@@ -5,7 +5,6 @@ import logging
 from optparse import OptionGroup
 from nose.failure import Failure
 from nose.plugins import Plugin
-from nose.result import TextTestResult
 import os
 
 from flaky._flaky_plugin import _FlakyPlugin
@@ -20,7 +19,7 @@ class FlakyPlugin(_FlakyPlugin, Plugin):
     def __init__(self):
         super(FlakyPlugin, self).__init__()
         self._logger = logging.getLogger('nose.plugins.flaky')
-        self._flaky_result = TextTestResult(self._stream, [], 0)
+        self._flaky_result = None
         self._flaky_report = True
         self._force_flaky = False
         self._max_runs = None
@@ -48,6 +47,17 @@ class FlakyPlugin(_FlakyPlugin, Plugin):
         self._force_flaky = options.force_flaky
         self._max_runs = options.max_runs
         self._min_passes = options.min_passes
+
+    def prepareTestResult(self, orig_result):
+        """
+        Executed on first call of this plugin.
+        :param orig_result:
+            `self._flaky_result` will be updated to `orig_result`
+        :type orig_result:
+            :class:`nose.result.TextTestResult`
+        """
+        # pylint:disable=invalid-name
+        self._flaky_result = orig_result
 
     def handleError(self, test, err):
         """
