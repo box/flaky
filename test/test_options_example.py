@@ -15,13 +15,13 @@ class ExampleTests(TestCase):
 
     def test_something_flaky(self):
         """
-        Flaky will run this test 3 times.
-        It will fail twice and then succeed once.
+        Flaky will run this test twice.
+        It will fail once and then succeed once.
         This ensures that we mark tests as flaky even if they don't have a
         decorator when we use the command-line options.
         """
         self._threshold += 1
-        if self._threshold < 1:
+        if self._threshold < 0:
             raise Exception("Threshold is not high enough.")
 
     @flaky(3, 1)
