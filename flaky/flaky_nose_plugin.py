@@ -53,6 +53,10 @@ class FlakyPlugin(_FlakyPlugin, Plugin):
     def handleError(self, test, err):
         """
         Baseclass override. Called when a test raises an exception.
+
+        If the test isn't going to be rerun again, then report the error
+        to the nose test result.
+
         :param test:
             The test that has raised an error
         :type test:
@@ -75,6 +79,10 @@ class FlakyPlugin(_FlakyPlugin, Plugin):
     def handleFailure(self, test, err):
         """
         Baseclass override. Called when a test fails.
+
+        If the test isn't going to be rerun again, then report the failure
+        to the nose test result.
+
         :param test:
             The test that has raised an error
         :type test:
@@ -130,6 +138,9 @@ class FlakyPlugin(_FlakyPlugin, Plugin):
     def prepareTestResult(self, result):
         """
         Baseclass override. Called right before the first test is run.
+
+        Stores the test result so that errors and failures can be reported
+        to the nose test result.
 
         :param result:
             The nose test result that needs to be informed of test failures.
