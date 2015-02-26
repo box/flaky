@@ -1,4 +1,6 @@
+-rrequirements.txt
 coveralls
+genty
 mock
 nose
 pep8

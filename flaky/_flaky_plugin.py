@@ -377,7 +377,15 @@ class _FlakyPlugin(object):
         :rtype:
             `bool`
         """
-        no_retry = flaky[FlakyNames.CURRENT_RUNS] >= flaky[FlakyNames.MAX_RUNS]
+        max_runs, current_runs, min_passes, current_passes = (
+            flaky[FlakyNames.MAX_RUNS],
+            flaky[FlakyNames.CURRENT_RUNS],
+            flaky[FlakyNames.MIN_PASSES],
+            flaky[FlakyNames.CURRENT_PASSES],
+        )
+        runs_left = max_runs - current_runs
+        passes_needed = min_passes - current_passes
+        no_retry = passes_needed > runs_left
         return no_retry and not cls._has_flaky_test_succeeded(flaky)
 
     @staticmethod

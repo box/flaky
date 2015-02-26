@@ -29,7 +29,9 @@ class ExampleTests(TestCase):
         """
         self._threshold += 1
         if self._threshold < 1:
-            raise Exception("Threshold is not high enough.")
+            raise Exception("Threshold is not high enough: {0} vs {1}.".format(
+                self._threshold, 1),
+            )
 
     @flaky(3, 2)
     def test_flaky_thing_that_succeeds_then_fails_then_succeeds(self):
@@ -64,7 +66,9 @@ class ExampleFlakyTests(TestCase):
         """
         self._threshold += 1
         if self._threshold < 1:
-            raise Exception("Threshold is not high enough.")
+            raise Exception("Threshold is not high enough: {0} vs {1}.".format(
+                self._threshold, 1),
+            )
 
 
 def test_function():

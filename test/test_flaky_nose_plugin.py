@@ -23,6 +23,8 @@ class TestFlakyPlugin(TestCase):
                 string_io.return_value = self._mock_stream
                 flaky_result.return_value = self._mock_test_result
                 self._flaky_plugin = flaky_nose_plugin.FlakyPlugin()
+        self._mock_nose_result = Mock(flaky_nose_plugin.TextTestResult)
+        self._flaky_plugin.prepareTestResult(self._mock_nose_result)
         self._mock_test = MagicMock(name='flaky_plugin_test')
         self._mock_test_case = MagicMock(
             name='flaky_plugin_test_case',
@@ -284,6 +286,7 @@ class TestFlakyPlugin(TestCase):
             }
         )
         expected_test_case_calls = [call.address(), call.address()]
+        expected_result_calls = []
         if expected_plugin_handles_failure:
             expected_test_case_calls.append(call.run(self._mock_test_result))
             expected_stream_calls = [call.writelines([
@@ -300,6 +303,14 @@ class TestFlakyPlugin(TestCase):
                 '\n',
             ])]
         else:
+            if is_failure:
+                expected_result_calls.append(
+                    call.addFailure(self._mock_test_case, self._mock_error),
+                )
+            else:
+                expected_result_calls.append(
+                    call.addError(self._mock_test_case, self._mock_error),
+                )
             expected_stream_calls = [call.writelines([
                 self._mock_test_method_name,
                 ' failed; it passed {0} out of the required {1} times.'.format(
@@ -314,6 +325,10 @@ class TestFlakyPlugin(TestCase):
                 unicode_type(self._mock_error[2]),
                 '\n'
             ])]
+        self.assertEqual(
+            self._mock_nose_result.mock_calls,
+            expected_result_calls,
+        )
         self.assertEqual(
             self._mock_test_case.mock_calls,
             expected_test_case_calls,

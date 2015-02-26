@@ -21,6 +21,7 @@ class FlakyPlugin(_FlakyPlugin, Plugin):
         super(FlakyPlugin, self).__init__()
         self._logger = logging.getLogger('nose.plugins.flaky')
         self._flaky_result = TextTestResult(self._stream, [], 0)
+        self._nose_result = None
         self._flaky_report = True
         self._force_flaky = False
         self._max_runs = None
@@ -52,6 +53,10 @@ class FlakyPlugin(_FlakyPlugin, Plugin):
     def handleError(self, test, err):
         """
         Baseclass override. Called when a test raises an exception.
+
+        If the test isn't going to be rerun again, then report the error
+        to the nose test result.
+
         :param test:
             The test that has raised an error
         :type test:
@@ -66,11 +71,18 @@ class FlakyPlugin(_FlakyPlugin, Plugin):
             `bool`
         """
         # pylint:disable=invalid-name
-        return self._handle_test_error_or_failure(test, err)
+        want_error = self._handle_test_error_or_failure(test, err)
+        if not want_error:
+            self._nose_result.addError(test, err)
+        return want_error
 
     def handleFailure(self, test, err):
         """
         Baseclass override. Called when a test fails.
+
+        If the test isn't going to be rerun again, then report the failure
+        to the nose test result.
+
         :param test:
             The test that has raised an error
         :type test:
@@ -85,7 +97,10 @@ class FlakyPlugin(_FlakyPlugin, Plugin):
             `bool`
         """
         # pylint:disable=invalid-name
-        return self._handle_test_error_or_failure(test, err)
+        want_failure = self._handle_test_error_or_failure(test, err)
+        if not want_failure:
+            self._nose_result.addFailure(test, err)
+        return want_failure
 
     def addSuccess(self, test):
         """
@@ -119,6 +134,21 @@ class FlakyPlugin(_FlakyPlugin, Plugin):
         """
         if self._flaky_report:
             self._add_flaky_report(stream)
+
+    def prepareTestResult(self, result):
+        """
+        Baseclass override. Called right before the first test is run.
+
+        Stores the test result so that errors and failures can be reported
+        to the nose test result.
+
+        :param result:
+            The nose test result that needs to be informed of test failures.
+        :type result:
+            :class:`nose.result.TextTestResult`
+        """
+        # pylint:disable=invalid-name
+        self._nose_result = result
 
     def prepareTestCase(self, test):
         """
