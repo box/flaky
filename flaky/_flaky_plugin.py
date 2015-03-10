@@ -51,7 +51,8 @@ class _FlakyPlugin(object):
         :type err:
             `tuple` of `class`, :class:`Exception`, `traceback`
         :return:
-            True, if the test will be rerun; False, if nose should handle it.
+            True, if the test will be rerun;
+            False, if the test runner should handle it.
         :rtype:
             `bool`
         """
