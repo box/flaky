@@ -7,7 +7,6 @@ from flaky.names import FlakyNames
 from flaky.utils import ensure_unicode_string
 
 
-# pylint:disable=R0921
 class _FlakyPlugin(object):
     _retry_failure_message = ' failed ({0} runs remaining out of {1}).'
     _failure_message = ' failed; it passed {0} out of the required {1} times.'
