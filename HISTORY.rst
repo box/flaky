@@ -3,6 +3,15 @@
 Release History
 ---------------
 
+2.0.3 (2015-03-20)
+++++++++++++++++++
+
+**Bugfixes**
+
+- Tests marked flaky that are part of a class inheriting from `unittest.TestCase` will now be rerun when they fail
+  under py.test.
+
+
 2.0.0 (2015-03-01)
 ++++++++++++++++++
 
