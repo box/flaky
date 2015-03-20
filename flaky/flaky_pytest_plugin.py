@@ -72,6 +72,18 @@ class FlakyPlugin(_FlakyPlugin):
     max_runs = None
     min_passes = None
 
+    @staticmethod
+    def _get_test_instance(item):
+        """
+        Get the object containing the test. This might be `test.instance`
+        or `test.parent.obj`.
+        """
+        test_instance = getattr(item, 'instance', None)
+        if test_instance is None:
+            if hasattr(item, 'parent') and hasattr(item.parent, 'obj'):
+                test_instance = item.parent.obj
+        return test_instance
+
     def run_test(self, item, nextitem):
         """
         Runs a test collected by py.test. First, monkey patches the builtin
@@ -86,7 +98,8 @@ class FlakyPlugin(_FlakyPlugin):
         :type nextitem:
             :class:`Function`
         """
-        self._copy_flaky_attributes(item, item.instance)
+        test_instance = self._get_test_instance(item)
+        self._copy_flaky_attributes(item, test_instance)
         if self.force_flaky and not self._has_flaky_attributes(item):
             self._make_test_callable_flaky(
                 item,
@@ -203,8 +216,9 @@ class FlakyPlugin(_FlakyPlugin):
             `tuple` of `callable`, `unicode`
         """
         callable_name = cls._get_test_callable_name(test)
-        if hasattr(test.instance, callable_name):
-            return getattr(test.instance, callable_name), callable_name
+        test_instance = cls._get_test_instance(test)
+        if hasattr(test_instance, callable_name):
+            return getattr(test_instance, callable_name), callable_name
         elif hasattr(test.module, callable_name):
             return getattr(test.module, callable_name), callable_name
         else:
@@ -231,10 +245,29 @@ class FlakyCallInfo(CallInfo):
         self.when = when
         self.start = time()
         self._item = item
+        self._want_rerun = []
+        self.excinfo = None
         try:
             self.call(func, plugin)
         finally:
             self.stop = time()
+
+    def _handle_error(self, plugin):
+        """
+        Handle an error that occurs during test execution.
+        If the test is marked flaky and there are reruns remaining,
+        don't report the test as failed.
+        """
+        # pylint:disable=no-member
+        err = self.excinfo or py.code.ExceptionInfo()
+        # pylint:enable=no-member
+        self.excinfo = None
+        self._want_rerun.append(plugin.add_failure(
+            self,
+            self._item,
+            err,
+        ))
+        self.excinfo = None if self._want_rerun[0] else err
 
     def call(self, func, plugin):
         """
@@ -251,6 +284,13 @@ class FlakyCallInfo(CallInfo):
         is_call = self.when == 'call'
         try:
             self.result = func()
+            # pytest's unittest plugin for some reason doesn't actually raise
+            # errors. It just adds them to the unittest result. In order to
+            # determine whether or not the test needs to be rerun, this
+            # code looks for the _excinfo attribute set by the plugin.
+            excinfo = getattr(self._item, '_excinfo', None)
+            if isinstance(excinfo, list) and len(excinfo) > 0:
+                self.excinfo = excinfo.pop(0)
         except KeyboardInterrupt:
             raise
         except Skipped:
@@ -258,27 +298,22 @@ class FlakyCallInfo(CallInfo):
             err = py.code.ExceptionInfo()
             # pylint:enable=no-member
             self.excinfo = err
+            return
         # pylint:disable=bare-except
         except:
-            # pylint:disable=no-member
-            err = py.code.ExceptionInfo()
-            # pylint:enable=no-member
             if is_call:
-                handled_failure = plugin.add_failure(
-                    self,
-                    self._item,
-                    err
-                )
-                if not handled_failure:
-                    self.excinfo = err
+                self._handle_error(plugin)
         else:
             if is_call:
-                handled_success = plugin.add_success(
-                    self,
-                    self._item
-                )
-                if not handled_success:
-                    self.excinfo = None
+                if self.excinfo is not None:
+                    self._handle_error(plugin)
+                else:
+                    handled_success = plugin.add_success(
+                        self,
+                        self._item,
+                    )
+                    if not handled_success:
+                        self.excinfo = None
 
 
 PLUGIN = FlakyPlugin()

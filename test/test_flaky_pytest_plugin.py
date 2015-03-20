@@ -16,7 +16,7 @@ from flaky.utils import unicode_type
 # pylint:disable=redefined-outer-name
 
 
-@pytest.fixture(autouse=True)
+@pytest.fixture
 def mock_io(monkeypatch):
     mock_string_io = StringIO()
 
@@ -26,12 +26,12 @@ def mock_io(monkeypatch):
     return mock_string_io
 
 
-@pytest.fixture(autouse=True)
+@pytest.fixture
 def string_io():
     return StringIO()
 
 
-@pytest.fixture(autouse=True)
+@pytest.fixture
 def flaky_plugin(mock_io):
     # pylint:disable=unused-argument
     return FlakyPlugin()
@@ -51,16 +51,20 @@ def mock_plugin_rerun(monkeypatch, flaky_plugin):
     return get_calls
 
 
-@pytest.fixture(autouse=True)
-def flaky_test():
+@pytest.fixture(params=['instance', 'module', 'parent'])
+def flaky_test(request):
     def test_function():
         pass
-    instance = Mock()
-    setattr(instance, 'test_method', test_function)
-    return MockTestItem(instance)
+    test_owner = Mock()
+    setattr(test_owner, 'test_method', test_function)
+    setattr(test_owner, 'obj', test_owner)
+    kwargs = {request.param: test_owner}
+    test = MockTestItem(**kwargs)
+    setattr(test, 'owner', test_owner)
+    return test
 
 
-@pytest.fixture(autouse=True)
+@pytest.fixture
 def call_info(flaky_test):
     return MockFlakyCallInfo(flaky_test, 'call')
 
@@ -82,10 +86,16 @@ class MockError(object):
 class MockTestItem(object):
     name = 'test_method'
     instance = None
+    module = None
+    parent = None
 
-    def __init__(self, instance):
-        self.instance = instance
-        self.module = instance
+    def __init__(self, instance=None, module=None, parent=None):
+        if instance is not None:
+            self.instance = instance
+        if module is not None:
+            self.module = module
+        if parent is not None:
+            self.parent = parent
 
     def runtest(self):
         pass
@@ -118,43 +128,27 @@ def test_flaky_plugin_report(flaky_plugin, mock_io, string_io):
 class TestFlakyPytestPlugin(object):
     _test_method_name = 'test_method'
 
-    def test_flaky_plugin_handles_success_for_test_method(
+    def test_flaky_plugin_handles_success(
         self,
-        flaky_plugin,
         flaky_test,
+        flaky_plugin,
         call_info,
         string_io,
         mock_io,
     ):
         self._test_flaky_plugin_handles_success(
             flaky_test,
+            flaky_test.owner,
             flaky_plugin,
             call_info,
             string_io,
             mock_io,
-        )
-
-    def test_flaky_plugin_handles_success_for_test_instance(
-        self,
-        flaky_plugin,
-        flaky_test,
-        call_info,
-        string_io,
-        mock_io,
-    ):
-        self._test_flaky_plugin_handles_success(
-            flaky_test,
-            flaky_plugin,
-            call_info,
-            string_io,
-            mock_io,
-            is_test_method=False
         )
 
     def test_flaky_plugin_handles_success_for_needs_rerun(
         self,
-        flaky_plugin,
         flaky_test,
+        flaky_plugin,
         call_info,
         string_io,
         mock_io,
@@ -162,11 +156,12 @@ class TestFlakyPytestPlugin(object):
     ):
         self._test_flaky_plugin_handles_success(
             flaky_test,
+            flaky_test.owner,
             flaky_plugin,
             call_info,
             string_io,
             mock_io,
-            min_passes=2
+            min_passes=2,
         )
         assert mock_plugin_rerun()[0] == flaky_test
 
@@ -192,10 +187,10 @@ class TestFlakyPytestPlugin(object):
         flaky_plugin.add_failure(call_info, flaky_test, None)
         self._assert_test_ignored(mock_io, string_io, call_info)
 
-    def test_flaky_plugin_handles_failure_for_test_method(
+    def test_flaky_plugin_handles_failure(
         self,
-        flaky_plugin,
         flaky_test,
+        flaky_plugin,
         call_info,
         string_io,
         mock_io,
@@ -204,39 +199,19 @@ class TestFlakyPytestPlugin(object):
     ):
         self._test_flaky_plugin_handles_failure(
             flaky_test,
+            flaky_test.owner,
             flaky_plugin,
             call_info,
             string_io,
             mock_io,
             mock_error,
-        )
-        assert mock_plugin_rerun()[0] == flaky_test
-
-    def test_flaky_plugin_handles_failure_for_test_instance(
-        self,
-        flaky_plugin,
-        flaky_test,
-        call_info,
-        string_io,
-        mock_io,
-        mock_error,
-        mock_plugin_rerun,
-    ):
-        self._test_flaky_plugin_handles_failure(
-            flaky_test,
-            flaky_plugin,
-            call_info,
-            string_io,
-            mock_io,
-            mock_error,
-            is_test_method=False,
         )
         assert mock_plugin_rerun()[0] == flaky_test
 
     def test_flaky_plugin_handles_failure_for_no_more_retries(
         self,
-        flaky_plugin,
         flaky_test,
+        flaky_plugin,
         call_info,
         string_io,
         mock_io,
@@ -244,6 +219,7 @@ class TestFlakyPytestPlugin(object):
     ):
         self._test_flaky_plugin_handles_failure(
             flaky_test,
+            flaky_test.owner,
             flaky_plugin,
             call_info,
             string_io,
@@ -254,8 +230,8 @@ class TestFlakyPytestPlugin(object):
 
     def test_flaky_plugin_handles_additional_failures(
         self,
-        flaky_plugin,
         flaky_test,
+        flaky_plugin,
         call_info,
         string_io,
         mock_io,
@@ -264,6 +240,7 @@ class TestFlakyPytestPlugin(object):
     ):
         self._test_flaky_plugin_handles_failure(
             flaky_test,
+            flaky_test.owner,
             flaky_plugin,
             call_info,
             string_io,
@@ -276,12 +253,11 @@ class TestFlakyPytestPlugin(object):
     def _assert_flaky_attributes_contains(
         self,
         expected_flaky_attributes,
-        test,
+        test_owner,
         test_method_name,
     ):
         actual_flaky_attributes = self._get_flaky_attributes(
-            True,
-            test,
+            test_owner,
             test_method_name,
         )
         assert all(
@@ -297,31 +273,28 @@ class TestFlakyPytestPlugin(object):
     def _test_flaky_plugin_handles_success(
         self,
         test,
+        test_owner,
         plugin,
         info,
         stream,
         mock_stream,
         current_passes=0,
         current_runs=0,
-        is_test_method=True,
         max_runs=2,
         min_passes=1,
     ):
-        test_owner = test.instance if is_test_method else test.module
         test_object = getattr(test_owner, self._test_method_name)
         flaky(max_runs, min_passes)(test_object)
         self._set_flaky_attribute(
-            is_test_method,
+            test_owner,
             FlakyNames.CURRENT_PASSES,
             current_passes,
-            test,
             self._test_method_name,
         )
         self._set_flaky_attribute(
-            is_test_method,
+            test_owner,
             FlakyNames.CURRENT_RUNS,
             current_runs,
-            test,
             self._test_method_name,
         )
 
@@ -341,7 +314,7 @@ class TestFlakyPytestPlugin(object):
                 FlakyNames.CURRENT_PASSES: current_passes + 1,
                 FlakyNames.CURRENT_RUNS: current_runs + 1,
             },
-            test,
+            test_owner,
             self._test_method_name,
         )
         stream.writelines([
@@ -363,6 +336,7 @@ class TestFlakyPytestPlugin(object):
     def _test_flaky_plugin_handles_failure(
         self,
         test,
+        test_owner,
         plugin,
         info,
         stream,
@@ -371,11 +345,9 @@ class TestFlakyPytestPlugin(object):
         current_errors=None,
         current_passes=0,
         current_runs=0,
-        is_test_method=True,
         max_runs=2,
         min_passes=1,
     ):
-        test_owner = test.instance if is_test_method else test.module
         test_object = getattr(test_owner, self._test_method_name)
         flaky(max_runs, min_passes)(test_object)
         if current_errors is None:
@@ -383,24 +355,21 @@ class TestFlakyPytestPlugin(object):
         else:
             current_errors.append(None)
         self._set_flaky_attribute(
-            is_test_method,
+            test_owner,
             FlakyNames.CURRENT_ERRORS,
             current_errors,
-            test,
             self._test_method_name,
         )
         self._set_flaky_attribute(
-            is_test_method,
+            test_owner,
             FlakyNames.CURRENT_PASSES,
             current_passes,
-            test,
             self._test_method_name,
         )
         self._set_flaky_attribute(
-            is_test_method,
+            test_owner,
             FlakyNames.CURRENT_RUNS,
             current_runs,
-            test,
             self._test_method_name,
         )
 
@@ -421,7 +390,7 @@ class TestFlakyPytestPlugin(object):
                 FlakyNames.CURRENT_RUNS: current_runs + 1,
                 FlakyNames.CURRENT_ERRORS: current_errors
             },
-            test,
+            test_owner,
             self._test_method_name,
         )
         if expected_plugin_handles_failure:
@@ -456,16 +425,23 @@ class TestFlakyPytestPlugin(object):
             ])
         assert stream.getvalue() == mock_stream.getvalue()
 
+    def test_flaky_plugin_handles_excinfo_set(
+        self,
+        flaky_plugin,
+        flaky_test,
+        call_info,
+        string_io,
+        mock_io,
+        mock_error,
+        mock_plugin_rerun,
+    ):
+        pass
+
     @staticmethod
     def _get_flaky_attributes(
-        is_test_method,
-        test,
+        test_owner,
         test_method_name=None
     ):
-        if is_test_method:
-            test_owner = test.instance
-        else:
-            test_owner = test.module
         test_object = getattr(
             test_owner,
             test_method_name,
@@ -481,16 +457,11 @@ class TestFlakyPytestPlugin(object):
 
     @staticmethod
     def _set_flaky_attribute(
-        is_test_method,
+        test_owner,
         attr,
         value,
-        test,
         test_method_name=None
     ):
-        if is_test_method:
-            test_owner = test.instance
-        else:
-            test_owner = test.module
         test_object = getattr(
             test_owner,
             test_method_name
