@@ -74,6 +74,10 @@ class FlakyPlugin(_FlakyPlugin):
 
     @staticmethod
     def _get_test_instance(item):
+        """
+        Get the object containing the test. This might be `test.instance`
+        or `test.parent.obj`.
+        """
         test_instance = getattr(item, 'instance', None)
         if test_instance is None:
             if hasattr(item, 'parent') and hasattr(item.parent, 'obj'):
@@ -242,12 +246,18 @@ class FlakyCallInfo(CallInfo):
         self.start = time()
         self._item = item
         self._want_rerun = []
+        self.excinfo = None
         try:
             self.call(func, plugin)
         finally:
             self.stop = time()
 
     def _handle_error(self, plugin):
+        """
+        Handle an error that occurs during test execution.
+        If the test is marked flaky and there are reruns remaining,
+        don't report the test as failed.
+        """
         # pylint:disable=no-member
         err = self.excinfo or py.code.ExceptionInfo()
         # pylint:enable=no-member
@@ -279,11 +289,7 @@ class FlakyCallInfo(CallInfo):
             # determine whether or not the test needs to be rerun, this
             # code looks for the _excinfo attribute set by the plugin.
             excinfo = getattr(self._item, '_excinfo', None)
-            if (
-                    excinfo is not None and
-                    isinstance(excinfo, list) and
-                    len(excinfo) > 0
-            ):
+            if isinstance(excinfo, list) and len(excinfo) > 0:
                 self.excinfo = excinfo.pop(0)
         except KeyboardInterrupt:
             raise
