@@ -20,6 +20,8 @@ Ideally, tests reliably pass or fail, but sometimes test fixtures must rely on c
 reliable. With flaky, instead of removing those tests or marking them to @skip, they can be automatically
 retried.
 
+For more information about flaky, see `this presentation <http://opensource.box.com/flaky/>`_.
+
 Marking tests flaky
 ~~~~~~~~~~~~~~~~~~~
 
