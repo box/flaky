@@ -138,7 +138,6 @@ class TestFlakyPytestPlugin(object):
     ):
         self._test_flaky_plugin_handles_success(
             flaky_test,
-            flaky_test.owner,
             flaky_plugin,
             call_info,
             string_io,
@@ -156,7 +155,6 @@ class TestFlakyPytestPlugin(object):
     ):
         self._test_flaky_plugin_handles_success(
             flaky_test,
-            flaky_test.owner,
             flaky_plugin,
             call_info,
             string_io,
@@ -199,7 +197,6 @@ class TestFlakyPytestPlugin(object):
     ):
         self._test_flaky_plugin_handles_failure(
             flaky_test,
-            flaky_test.owner,
             flaky_plugin,
             call_info,
             string_io,
@@ -219,7 +216,6 @@ class TestFlakyPytestPlugin(object):
     ):
         self._test_flaky_plugin_handles_failure(
             flaky_test,
-            flaky_test.owner,
             flaky_plugin,
             call_info,
             string_io,
@@ -240,7 +236,6 @@ class TestFlakyPytestPlugin(object):
     ):
         self._test_flaky_plugin_handles_failure(
             flaky_test,
-            flaky_test.owner,
             flaky_plugin,
             call_info,
             string_io,
@@ -253,13 +248,9 @@ class TestFlakyPytestPlugin(object):
     def _assert_flaky_attributes_contains(
         self,
         expected_flaky_attributes,
-        test_owner,
-        test_method_name,
+        test,
     ):
-        actual_flaky_attributes = self._get_flaky_attributes(
-            test_owner,
-            test_method_name,
-        )
+        actual_flaky_attributes = self._get_flaky_attributes(test)
         assert all(
             item in actual_flaky_attributes.items()
             for item in expected_flaky_attributes.items()
@@ -273,7 +264,6 @@ class TestFlakyPytestPlugin(object):
     def _test_flaky_plugin_handles_success(
         self,
         test,
-        test_owner,
         plugin,
         info,
         stream,
@@ -283,19 +273,16 @@ class TestFlakyPytestPlugin(object):
         max_runs=2,
         min_passes=1,
     ):
-        test_object = getattr(test_owner, self._test_method_name)
-        flaky(max_runs, min_passes)(test_object)
-        self._set_flaky_attribute(
-            test_owner,
+        flaky(max_runs, min_passes)(test)
+        setattr(
+            test,
             FlakyNames.CURRENT_PASSES,
             current_passes,
-            self._test_method_name,
         )
-        self._set_flaky_attribute(
-            test_owner,
+        setattr(
+            test,
             FlakyNames.CURRENT_RUNS,
             current_runs,
-            self._test_method_name,
         )
 
         too_few_passes = current_passes + 1 < min_passes
@@ -314,8 +301,7 @@ class TestFlakyPytestPlugin(object):
                 FlakyNames.CURRENT_PASSES: current_passes + 1,
                 FlakyNames.CURRENT_RUNS: current_runs + 1,
             },
-            test_owner,
-            self._test_method_name,
+            test,
         )
         stream.writelines([
             self._test_method_name,
@@ -336,7 +322,6 @@ class TestFlakyPytestPlugin(object):
     def _test_flaky_plugin_handles_failure(
         self,
         test,
-        test_owner,
         plugin,
         info,
         stream,
@@ -348,29 +333,25 @@ class TestFlakyPytestPlugin(object):
         max_runs=2,
         min_passes=1,
     ):
-        test_object = getattr(test_owner, self._test_method_name)
-        flaky(max_runs, min_passes)(test_object)
+        flaky(max_runs, min_passes)(test)
         if current_errors is None:
             current_errors = [None]
         else:
             current_errors.append(None)
-        self._set_flaky_attribute(
-            test_owner,
+        setattr(
+            test,
             FlakyNames.CURRENT_ERRORS,
             current_errors,
-            self._test_method_name,
         )
-        self._set_flaky_attribute(
-            test_owner,
+        setattr(
+            test,
             FlakyNames.CURRENT_PASSES,
             current_passes,
-            self._test_method_name,
         )
-        self._set_flaky_attribute(
-            test_owner,
+        setattr(
+            test,
             FlakyNames.CURRENT_RUNS,
             current_runs,
-            self._test_method_name,
         )
 
         too_few_passes = current_passes < min_passes
@@ -390,8 +371,7 @@ class TestFlakyPytestPlugin(object):
                 FlakyNames.CURRENT_RUNS: current_runs + 1,
                 FlakyNames.CURRENT_ERRORS: current_errors
             },
-            test_owner,
-            self._test_method_name,
+            test,
         )
         if expected_plugin_handles_failure:
             stream.writelines([
@@ -438,32 +418,12 @@ class TestFlakyPytestPlugin(object):
         pass
 
     @staticmethod
-    def _get_flaky_attributes(
-        test_owner,
-        test_method_name=None
-    ):
-        test_object = getattr(
-            test_owner,
-            test_method_name,
-        )
+    def _get_flaky_attributes(test):
         actual_flaky_attributes = dict((
             (attr, getattr(
-                test_object,
+                test,
                 attr,
                 None,
             )) for attr in FlakyNames()
         ))
         return actual_flaky_attributes
-
-    @staticmethod
-    def _set_flaky_attribute(
-        test_owner,
-        attr,
-        value,
-        test_method_name=None
-    ):
-        test_object = getattr(
-            test_owner,
-            test_method_name
-        )
-        setattr(test_object, attr, value)

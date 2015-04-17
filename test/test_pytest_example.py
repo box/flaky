@@ -88,3 +88,16 @@ class TestExampleFlakyTestCase(TestCase):
         """
         self._threshold += 1
         assert self._threshold >= 1
+
+
+class TestFlakySubclass(TestExampleFlakyTestCase):
+    pass
+
+
+def _test_flaky_doctest():
+    """
+    Flaky ignored doctests. This test wouldn't be rerun if it failed.
+    >>> _test_flaky_doctest()
+    True
+    """
+    return True

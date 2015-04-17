@@ -89,7 +89,7 @@ With py.test, flaky will automatically run. It can, however be disabled via the 
 
 .. code-block:: console
 
-    py.test no:flaky
+    py.test -p no:flaky
 
 Command line arguments
 ~~~~~~~~~~~~~~~~~~~~~~

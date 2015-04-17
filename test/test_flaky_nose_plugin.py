@@ -50,6 +50,15 @@ class TestFlakyPlugin(TestCase):
             self._mock_exception,
             self._mock_stack_trace
         )
+        self._mock_test_method = MagicMock(
+            name=self._mock_test_method_name,
+            spec=['__call__'] + list(FlakyNames().items()),
+        )
+        setattr(
+            self._mock_test,
+            self._mock_test_method_name,
+            self._mock_test_method,
+        )
 
     def test_flaky_plugin_report(self):
         flaky_report = 'Flaky tests passed; others failed. ' \
@@ -127,6 +136,7 @@ class TestFlakyPlugin(TestCase):
                 value,
             )
         delattr(self._mock_test, self._mock_test_method_name)
+        self._flaky_plugin.prepareTestCase(self._mock_test_case)
         self.assertTrue(self._flaky_plugin.handleError(
             self._mock_test_case,
             self._mock_error,
@@ -146,12 +156,13 @@ class TestFlakyPlugin(TestCase):
     def _expect_test_flaky(self, is_test_method, max_runs, min_passes):
         self._expect_call_test_address()
         if is_test_method:
-            for flaky_attr in FlakyNames():
-                setattr(self._mock_test, flaky_attr, None)
             mock_test_method = getattr(
                 self._mock_test,
                 self._mock_test_method_name
             )
+            for flaky_attr in FlakyNames():
+                setattr(self._mock_test, flaky_attr, None)
+                setattr(mock_test_method, flaky_attr, None)
             flaky(max_runs, min_passes)(mock_test_method)
         else:
             flaky(max_runs, min_passes)(self._mock_test)
@@ -176,21 +187,14 @@ class TestFlakyPlugin(TestCase):
         self.assertEqual(self._mock_test_case.mock_calls, [call.address()])
         self.assertEqual(self._mock_test.mock_calls, [])
 
-    def _get_flaky_attributes(self, is_test_method):
-        if is_test_method:
-            mock_test_method = getattr(
-                self._mock_test,
-                self._mock_test_method_name
-            )
-            test_object = mock_test_method
-        else:
-            test_object = self._mock_test
+    def _get_flaky_attributes(self):
         actual_flaky_attributes = dict((
             (
                 attr,
                 getattr(
-                    test_object,
-                    attr
+                    self._mock_test_case,
+                    attr,
+                    None,
                 )
             ) for attr in FlakyNames()
         ))
@@ -199,26 +203,18 @@ class TestFlakyPlugin(TestCase):
                 actual_flaky_attributes[key] = tuple(value)
         return actual_flaky_attributes
 
-    def _set_flaky_attribute(self, is_test_method, attr, value):
-        if is_test_method:
-            mock_test_method = getattr(
-                self._mock_test,
-                self._mock_test_method_name
-            )
-            test_object = mock_test_method
-        else:
-            test_object = self._mock_test
-        setattr(test_object, attr, value)
+    def _set_flaky_attribute(self, attr, value):
+        setattr(self._mock_test, attr, value)
 
     def _assert_flaky_attributes_contains(
         self,
         expected_flaky_attributes,
     ):
-        actual_flaky_attributes = self._get_flaky_attributes(True)
+        actual_flaky_attributes = self._get_flaky_attributes()
         self.assertDictContainsSubset(
             expected_flaky_attributes,
             actual_flaky_attributes,
-            'Unexpected flaky attributes, {0} vs {1}'.format(
+            'Unexpected flaky attributes. Expected {0} got {1}'.format(
                 expected_flaky_attributes,
                 actual_flaky_attributes
             )
@@ -240,23 +236,20 @@ class TestFlakyPlugin(TestCase):
         else:
             current_errors.append(self._mock_error)
         self._set_flaky_attribute(
-            is_test_method,
             FlakyNames.CURRENT_ERRORS,
-            current_errors
+            current_errors,
         )
         self._set_flaky_attribute(
-            is_test_method,
             FlakyNames.CURRENT_PASSES,
-            current_passes
+            current_passes,
         )
         self._set_flaky_attribute(
-            is_test_method,
             FlakyNames.CURRENT_RUNS,
-            current_runs
+            current_runs,
         )
 
-        too_few_passes = current_passes < min_passes
         retries_remaining = current_runs + 1 < max_runs
+        too_few_passes = current_passes < min_passes
         expected_plugin_handles_failure = too_few_passes and retries_remaining
 
         self._flaky_plugin.prepareTestCase(self._mock_test_case)
@@ -277,13 +270,13 @@ class TestFlakyPlugin(TestCase):
             'Expected plugin{0} to handle the test run, but it did{1}.'.format(
                 ' to' if expected_plugin_handles_failure else '',
                 '' if actual_plugin_handles_failure else ' not'
-            )
+            ),
         )
         self._assert_flaky_attributes_contains(
             {
                 FlakyNames.CURRENT_RUNS: current_runs + 1,
                 FlakyNames.CURRENT_ERRORS: tuple(current_errors),
-            }
+            },
         )
         expected_test_case_calls = [call.address(), call.address()]
         expected_result_calls = []
@@ -349,38 +342,36 @@ class TestFlakyPlugin(TestCase):
     ):
         self._expect_test_flaky(is_test_method, max_runs, min_passes)
         self._set_flaky_attribute(
-            is_test_method,
             FlakyNames.CURRENT_PASSES,
-            current_passes
+            current_passes,
         )
         self._set_flaky_attribute(
-            is_test_method,
             FlakyNames.CURRENT_RUNS,
-            current_runs
+            current_runs,
         )
 
-        too_few_passes = current_passes + 1 < min_passes
         retries_remaining = current_runs + 1 < max_runs
+        too_few_passes = current_passes + 1 < min_passes
         expected_plugin_handles_success = too_few_passes and retries_remaining
 
         self._flaky_plugin.prepareTestCase(self._mock_test_case)
         actual_plugin_handles_success = self._flaky_plugin.addSuccess(
-            self._mock_test_case
+            self._mock_test_case,
         )
 
         self.assertEqual(
             expected_plugin_handles_success,
             actual_plugin_handles_success,
             'Expected plugin{0} to handle the test run, but it did{1}.'.format(
-                ' to' if expected_plugin_handles_success else '',
+                ' not' if expected_plugin_handles_success else '',
                 '' if actual_plugin_handles_success else ' not'
-            )
+            ),
         )
         self._assert_flaky_attributes_contains(
             {
-                FlakyNames.CURRENT_PASSES: current_passes + 1,
                 FlakyNames.CURRENT_RUNS: current_runs + 1,
-            }
+                FlakyNames.CURRENT_PASSES: current_passes + 1,
+            },
         )
         expected_test_case_calls = [call.address(), call.address()]
         expected_stream_calls = [call.writelines([

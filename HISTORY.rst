@@ -3,6 +3,20 @@
 Release History
 ---------------
 
+2.0.4 (2015-04-16)
+++++++++++++++++++
+
+**Bugfixes**
+
+- Flaky now copies flaky attributes to collected tests, rather than modifying them on the test declaration.
+  This means that tests collected from classes that inherit tests marked flaky (from a base class) will now
+  work correctly.
+- Running py.test with doctests will no longer cause the doctests to fail. Doctests cannot, however, be marked flaky.
+
+**Documentation updates**
+
+- Updated documentation to correctly specify how to suppress the flaky report under py.test.
+
 2.0.3 (2015-03-20)
 ++++++++++++++++++
 
