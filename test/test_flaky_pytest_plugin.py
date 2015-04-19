@@ -2,13 +2,19 @@
 
 from __future__ import unicode_literals
 from io import StringIO
-
+from mock import Mock, patch
 # pylint:disable=import-error
 import pytest
 # pylint:enable=import-error
 from flaky import flaky
 from flaky import _flaky_plugin
-from flaky.flaky_pytest_plugin import FlakyPlugin, FlakyCallInfo
+from flaky.flaky_pytest_plugin import (
+    FlakyPlugin,
+    FlakyCallInfo,
+    FlakyXdist,
+    PLUGIN,
+    pytest_sessionfinish,
+)
 from flaky.names import FlakyNames
 from flaky.utils import unicode_type
 
@@ -109,10 +115,6 @@ class MockFlakyCallInfo(FlakyCallInfo):
         self._item = item
 
 
-class Mock(object):
-    pass
-
-
 def test_flaky_plugin_report(flaky_plugin, mock_io, string_io):
     flaky_report = 'Flaky tests passed; others failed. ' \
                    'No more tests; that ship has sailed.'
@@ -123,6 +125,68 @@ def test_flaky_plugin_report(flaky_plugin, mock_io, string_io):
     mock_io.write(flaky_report)
     flaky_plugin.terminal_summary(string_io)
     assert string_io.getvalue() == expected_string_io.getvalue()
+
+
+@pytest.fixture(params=(
+    {},
+    {'flaky_report': ''},
+    {'flaky_report': 'ŝȁḿҏľȅ ƭȅхƭ'},
+))
+def mock_xdist_node_slaveoutput(request):
+    return request.param
+
+
+@pytest.fixture(params=(None, object()))
+def mock_xdist_error(request):
+    return request.param
+
+
+@pytest.mark.parametrize('assign_slaveoutput', (True, False))
+def test_flaky_xdist_nodedown(
+        mock_xdist_node_slaveoutput,
+        assign_slaveoutput,
+        mock_xdist_error
+):
+    flaky_xdist = FlakyXdist()
+    node = Mock()
+    if assign_slaveoutput:
+        node.slaveoutput = mock_xdist_node_slaveoutput
+    else:
+        delattr(node, 'slaveoutput')
+    mock_stream = Mock(StringIO)
+    with patch.object(PLUGIN, '_stream', mock_stream):
+        flaky_xdist.pytest_testnodedown(node, mock_xdist_error)
+    if assign_slaveoutput and 'flaky_report' in mock_xdist_node_slaveoutput:
+        mock_stream.write.assert_called_once_with(
+            mock_xdist_node_slaveoutput['flaky_report'],
+        )
+    else:
+        assert not mock_stream.write.called
+
+
+_REPORT_TEXT1 = 'Flaky report text'
+_REPORT_TEXT2 = 'Ḿőŕȅ ƒľȁƙŷ ŕȅҏőŕƭ ƭȅхƭ'
+
+
+@pytest.mark.parametrize('initial_report,stream_report,expected_report', (
+    ('', '', ''),
+    ('', _REPORT_TEXT1, _REPORT_TEXT1),
+    (_REPORT_TEXT1, '', _REPORT_TEXT1),
+    (_REPORT_TEXT1, _REPORT_TEXT2, _REPORT_TEXT1 + _REPORT_TEXT2),
+    (_REPORT_TEXT2, _REPORT_TEXT1, _REPORT_TEXT2 + _REPORT_TEXT1),
+))
+def test_flaky_session_finish_copies_flaky_report(
+        initial_report,
+        stream_report,
+        expected_report,
+):
+    PLUGIN.stream.seek(0)
+    PLUGIN.stream.truncate()
+    PLUGIN.stream.write(stream_report)
+    PLUGIN.config = Mock()
+    PLUGIN.config.slaveoutput = {'flaky_report': initial_report}
+    pytest_sessionfinish()
+    assert PLUGIN.config.slaveoutput['flaky_report'] == expected_report
 
 
 class TestFlakyPytestPlugin(object):

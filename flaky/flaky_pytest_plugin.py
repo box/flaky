@@ -49,7 +49,8 @@ class FlakyXdist(object):
 
     def pytest_testnodedown(self, node, error):
         # pylint: disable=unused-argument, no-self-use
-        PLUGIN.stream.write(node.slaveoutput['flaky_report'])
+        if hasattr(node, 'slaveoutput') and 'flaky_report' in node.slaveoutput:
+            PLUGIN.stream.write(node.slaveoutput['flaky_report'])
 
 
 def pytest_configure(config):
@@ -68,11 +69,13 @@ def pytest_configure(config):
     if config.pluginmanager.hasplugin('xdist'):
         config.pluginmanager.register(FlakyXdist())
         PLUGIN.config = config
+    if hasattr(config, 'slaveoutput'):
+        config.slaveoutput['flaky_report'] = ''
 
 
 def pytest_sessionfinish():
     if hasattr(PLUGIN.config, 'slaveoutput'):
-        PLUGIN.config.slaveoutput['flaky_report'] = PLUGIN.stream.getvalue()
+        PLUGIN.config.slaveoutput['flaky_report'] += PLUGIN.stream.getvalue()
 
 
 class FlakyPlugin(_FlakyPlugin):
