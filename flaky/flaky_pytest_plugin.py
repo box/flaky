@@ -124,7 +124,7 @@ class FlakyPlugin(_FlakyPlugin):
         test_instance = self._get_test_instance(item)
         self._copy_flaky_attributes(item, test_instance)
         if self.force_flaky and not self._has_flaky_attributes(item):
-            self._make_test_callable_flaky(
+            self._make_test_flaky(
                 item,
                 self.max_runs,
                 self.min_passes,
@@ -226,26 +226,31 @@ class FlakyPlugin(_FlakyPlugin):
         return test.name
 
     @classmethod
-    def _get_test_callable_and_name(cls, test):
+    def _get_test_declaration_callable_and_name(cls, test):
         """
-        Get the test callable and test callable name from the test.
+        Base class override.
+
         :param test:
             The test that has raised an error or succeeded
         :type test:
             :class:`Function`
         :return:
-            The test callable (and its name) that is being run by the test
+            The test declaration, callable and name that is being run
         :rtype:
-            `tuple` of `callable`, `unicode`
+            `tuple` of `object`, `callable`, `unicode`
         """
         callable_name = cls._get_test_callable_name(test)
         test_instance = cls._get_test_instance(test)
         if hasattr(test_instance, callable_name):
-            return getattr(test_instance, callable_name), callable_name
+            def_and_callable = getattr(test_instance, callable_name)
+            return def_and_callable, def_and_callable, callable_name
+        elif hasattr(test, 'runner') and hasattr(test.runner, 'run'):
+            return test, test.runner.run, callable_name
         elif hasattr(test.module, callable_name):
-            return getattr(test.module, callable_name), callable_name
+            def_and_callable = getattr(test.module, callable_name)
+            return def_and_callable, def_and_callable, callable_name
         else:
-            return None, callable_name
+            return None, None, callable_name
 
     def _rerun_test(self, test):
         """Base class override. Rerun a flaky test."""

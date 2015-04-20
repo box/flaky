@@ -89,7 +89,7 @@ With py.test, flaky will automatically run. It can, however be disabled via the 
 
 .. code-block:: console
 
-    py.test no:flaky
+    py.test -p no:flaky
 
 Command line arguments
 ~~~~~~~~~~~~~~~~~~~~~~
@@ -119,6 +119,16 @@ To install, simply:
 .. code-block:: console
 
     pip install flaky
+
+
+Compatibility
+-------------
+
+Flaky is tested with the following test runners and options:
+
+- Nosetests. Doctests cannot be marked flaky.
+
+- Py.test. Works with `pytest-xdist` but not with the `--boxed` option. Doctests cannot be marked flaky.
 
 
 Contributing

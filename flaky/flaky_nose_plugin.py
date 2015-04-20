@@ -166,7 +166,7 @@ class FlakyPlugin(_FlakyPlugin, Plugin):
             test_class = test.test
             self._copy_flaky_attributes(test, test_class)
             if self._force_flaky and not self._has_flaky_attributes(test):
-                self._make_test_callable_flaky(
+                self._make_test_flaky(
                     test, self._max_runs, self._min_passes)
 
     def _rerun_test(self, test):
@@ -192,17 +192,18 @@ class FlakyPlugin(_FlakyPlugin, Plugin):
         return test_callable_name
 
     @classmethod
-    def _get_test_callable_and_name(cls, test):
+    def _get_test_declaration_callable_and_name(cls, test):
         """
-        Get the test callable and test callable name from the test.
+        Base class override.
+
         :param test:
             The test that has raised an error or succeeded
         :type test:
             :class:`nose.case.Test`
         :return:
-            The test callable (and its name) that is being run by the test
+            The test declaration, callable and name that is being run
         :rtype:
-            `tuple` of `callable`, `unicode`
+            `tuple` of `object`, `callable`, `unicode`
         """
         callable_name = cls._get_test_callable_name(test)
         test_callable = getattr(
@@ -210,4 +211,4 @@ class FlakyPlugin(_FlakyPlugin, Plugin):
             callable_name,
             getattr(test.test, 'test', test.test),
         )
-        return test_callable, callable_name
+        return test_callable, test_callable, callable_name
