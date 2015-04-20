@@ -45,6 +45,14 @@ def pytest_addoption(parser):
     PLUGIN.add_force_flaky_options(group.addoption)
 
 
+class FlakyXdist(object):
+
+    def pytest_testnodedown(self, node, error):
+        # pylint: disable=unused-argument, no-self-use
+        if hasattr(node, 'slaveoutput') and 'flaky_report' in node.slaveoutput:
+            PLUGIN.stream.write(node.slaveoutput['flaky_report'])
+
+
 def pytest_configure(config):
     """
     Pytest hook to get information about how the test run has been configured.
@@ -58,6 +66,16 @@ def pytest_configure(config):
     PLUGIN.max_runs = config.option.max_runs
     PLUGIN.min_passes = config.option.min_passes
     PLUGIN.runner = config.pluginmanager.getplugin("runner")
+    if config.pluginmanager.hasplugin('xdist'):
+        config.pluginmanager.register(FlakyXdist())
+        PLUGIN.config = config
+    if hasattr(config, 'slaveoutput'):
+        config.slaveoutput['flaky_report'] = ''
+
+
+def pytest_sessionfinish():
+    if hasattr(PLUGIN.config, 'slaveoutput'):
+        PLUGIN.config.slaveoutput['flaky_report'] += PLUGIN.stream.getvalue()
 
 
 class FlakyPlugin(_FlakyPlugin):
@@ -71,6 +89,11 @@ class FlakyPlugin(_FlakyPlugin):
     force_flaky = False
     max_runs = None
     min_passes = None
+    config = None
+
+    @property
+    def stream(self):
+        return self._stream
 
     @staticmethod
     def _get_test_instance(item):

@@ -7,4 +7,5 @@ pep8
 pylint
 pytest
 pytest-cov
+pytest-xdist
 tox
