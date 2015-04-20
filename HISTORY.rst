@@ -3,7 +3,7 @@
 Release History
 ---------------
 
-2.0.4 (2015-04-16)
+2.0.4 (2015-04-20)
 ++++++++++++++++++
 
 **Bugfixes**
@@ -11,7 +11,11 @@ Release History
 - Flaky now copies flaky attributes to collected tests, rather than modifying them on the test declaration.
   This means that tests collected from classes that inherit tests marked flaky (from a base class) will now
   work correctly.
+
 - Running py.test with doctests will no longer cause the doctests to fail. Doctests cannot, however, be marked flaky.
+
+- Tests marked flaky will now be correctly rerun from pytest when using the pytest-xdist option. However, they
+  will not be run if the `--boxed` option is used due to a technical limitation.
 
 **Documentation updates**
 

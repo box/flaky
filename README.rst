@@ -121,6 +121,16 @@ To install, simply:
     pip install flaky
 
 
+Compatibility
+-------------
+
+Flaky is tested with the following test runners and options:
+
+- Nosetests. Doctests cannot be marked flaky.
+
+- Py.test. Works with `pytest-xdist` but not with the `--boxed` option. Doctests cannot be marked flaky.
+
+
 Contributing
 ------------
 
