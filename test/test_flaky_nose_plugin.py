@@ -281,7 +281,7 @@ class TestFlakyPlugin(TestCase):
         expected_test_case_calls = [call.address(), call.address()]
         expected_result_calls = []
         if expected_plugin_handles_failure:
-            expected_test_case_calls.append(call.run(self._mock_test_result))
+            expected_test_case_calls.append(('__hash__',))
             expected_stream_calls = [call.writelines([
                 self._mock_test_method_name,
                 ' failed ({0} runs remaining out of {1}).'.format(
@@ -381,7 +381,7 @@ class TestFlakyPlugin(TestCase):
             ),
         ])]
         if expected_plugin_handles_success:
-            expected_test_case_calls.append(call.run(self._mock_test_result))
+            expected_test_case_calls.append(('__hash__',))
             expected_stream_calls.append(
                 call.write(
                     'Running test again until it passes {0} times.\n'.format(
