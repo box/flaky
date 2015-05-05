@@ -3,6 +3,15 @@
 Release History
 ---------------
 
+2.1.0 (2015-05-05)
+++++++++++++++++++
+
+**Bugfixes**
+
+- Flaky for nose now reruns failed tests *after* calling the `tearDown()` method.
+  This change is correct, but is a change in behavior.
+
+
 2.0.4 (2015-04-20)
 ++++++++++++++++++
 
