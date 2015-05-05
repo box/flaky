@@ -26,6 +26,7 @@ class FlakyPlugin(_FlakyPlugin, Plugin):
         self._force_flaky = False
         self._max_runs = None
         self._min_passes = None
+        self._test_status = {}
 
     def options(self, parser, env=os.environ):
         """
@@ -49,6 +50,51 @@ class FlakyPlugin(_FlakyPlugin, Plugin):
         self._force_flaky = options.force_flaky
         self._max_runs = options.max_runs
         self._min_passes = options.min_passes
+
+    def startTest(self, test):
+        """
+        Base class override. Called before a test is run.
+
+        Add the test to the test status tracker, so it can potentially
+        be rerun during stopTest.
+
+        :param test:
+            The test that is going to be run.
+        :type test:
+            :class:`nose.case.Test`
+        """
+        # pylint:disable=invalid-name
+        self._test_status[test] = None
+
+    def stopTest(self, test):
+        """
+        Base class override. Called after a test is run.
+
+        If the test was marked for rerun, rerun the test.
+
+        :param test:
+            The test that has been run.
+        :type test:
+            :class:`nose.case.Test`
+        """
+        # pylint:disable=invalid-name
+        if self._test_status[test]:
+            test.run(self._flaky_result)
+        del self._test_status[test]
+
+    def _rerun_test(self, test):
+        """
+        Base class override. Rerun a flaky test.
+
+        In this case, don't actually rerun the test, but mark it for
+        rerun during stopTest.
+
+        :param test:
+            The test that is going to be rerun.
+        :type test:
+            :class:`nose.case.Test`
+        """
+        self._test_status[test] = True
 
     def handleError(self, test, err):
         """
@@ -168,10 +214,6 @@ class FlakyPlugin(_FlakyPlugin, Plugin):
             if self._force_flaky and not self._has_flaky_attributes(test):
                 self._make_test_flaky(
                     test, self._max_runs, self._min_passes)
-
-    def _rerun_test(self, test):
-        """Base class override. Rerun a flaky test."""
-        test.run(self._flaky_result)
 
     @staticmethod
     def _get_test_callable_name(test):
