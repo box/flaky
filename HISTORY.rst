@@ -3,6 +3,14 @@
 Release History
 ---------------
 
+
+2.1.0 (2015-05-05)
+++++++++++++++++++
+
+**Bugfixes**
+
+- Flaky will no longer raise a KeyError for failed flaky tests.
+
 2.1.0 (2015-05-05)
 ++++++++++++++++++
 

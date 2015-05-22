@@ -80,7 +80,7 @@ class FlakyPlugin(_FlakyPlugin, Plugin):
         # pylint:disable=invalid-name
         if self._test_status[test]:
             test.run(self._flaky_result)
-        del self._test_status[test]
+        self._test_status.pop(test, None)
 
     def _rerun_test(self, test):
         """

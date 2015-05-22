@@ -2,6 +2,7 @@
 
 from __future__ import unicode_literals
 from genty import genty, genty_dataset
+from io import StringIO
 from flaky._flaky_plugin import _FlakyPlugin
 from flaky.names import FlakyNames
 from test.base_test_case import TestCase
@@ -21,7 +22,7 @@ class TestFlakyPlugin(TestCase):
         self._flaky_plugin._log_test_failure(
             mock_method_name,
             (ValueError.__name__, mock_exception, ''),
-            mock_message
+            mock_message,
         )
 
     @genty_dataset(
@@ -56,3 +57,11 @@ class TestFlakyPlugin(TestCase):
             self._flaky_plugin._has_flaky_test_failed(flaky),
             expect_fail,
         )
+
+    @genty_dataset('ascii stuff', 'ńőń ȁŝćȉȉ ŝƭȕƒƒ')
+    def test_write_unicode_to_stream(self, message):
+        stream = StringIO()
+        stream.write('ascii stuff')
+        # pylint:disable=protected-access
+        self._flaky_plugin._stream.write(message)
+        self._flaky_plugin._add_flaky_report(stream)

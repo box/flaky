@@ -5,6 +5,8 @@ from __future__ import unicode_literals
 # This is an end-to-end example of the flaky package in action. Consider it
 # a live tutorial, showing the various features in action.
 
+from genty import genty, genty_dataset
+
 from flaky import flaky
 from test.base_test_case import TestCase, expectedFailure, skip
 
@@ -85,3 +87,15 @@ def test_flaky_function(param=[]):
     param_length = len(param)
     param.append(None)
     assert param_length == 1
+
+
+@genty
+class ExampleFlakyTestsWithUnicodeTestNames(ExampleFlakyTests):
+    @genty_dataset('ascii name', 'ńőń ȁŝćȉȉ ŝƭȕƒƒ')
+    def test_non_flaky_thing(self, message):
+        # pylint:disable=unused-argument
+        self._threshold += 1
+        if self._threshold < 1:
+            raise Exception("Threshold is not high enough: {0} vs {1}.".format(
+                self._threshold, 1),
+            )
