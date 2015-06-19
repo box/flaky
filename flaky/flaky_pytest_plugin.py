@@ -334,7 +334,8 @@ class FlakyCallInfo(CallInfo):
         else:
             if is_call:
                 if self.excinfo is not None:
-                    self._handle_error(plugin)
+                    if self.excinfo.typename != 'Skipped':
+                        self._handle_error(plugin)
                 else:
                     handled_success = plugin.add_success(
                         self,
