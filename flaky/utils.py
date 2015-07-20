@@ -2,6 +2,8 @@
 
 from __future__ import unicode_literals
 
+from six import binary_type
+
 # pylint:disable=invalid-name
 try:
     unicode_type = unicode
@@ -23,6 +25,6 @@ def ensure_unicode_string(obj):
     try:
         return unicode_type(obj)
     except UnicodeDecodeError:
-        if isinstance(obj, str):
+        if isinstance(obj, binary_type):
             return obj.decode('utf-8', 'replace')
         return ensure_unicode_string(repr(obj))
