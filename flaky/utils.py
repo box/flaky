@@ -9,20 +9,8 @@ except NameError:
     unicode_type = str
 
 
-def ensure_unicode_string(obj):
-    """
-    Return a unciode string representation of the given obj.
-
-    :param obj:
-        The obj we want to represent in unicode
-    :type obj:
-        varies
-    :rtype:
-        `unicode`
-    """
+def ensure_unicode_string(string):
     try:
-        return unicode_type(obj)
+        return unicode_type(string)
     except UnicodeDecodeError:
-        if isinstance(obj, str):
-            return obj.decode('utf-8', 'replace')
-        return ensure_unicode_string(repr(obj))
+        return string.decode('utf-8', 'replace')

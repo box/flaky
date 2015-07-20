@@ -89,28 +89,13 @@ def test_flaky_function(param=[]):
     assert param_length == 1
 
 
-@flaky
 @genty
-class ExampleFlakyTestsWithTrickyTestNames(TestCase):
-    _threshold = -1
-
-    _unicode_string = 'Plain Hello'
-    _byte_string = str(_unicode_string)
-    _unicode_string_non_ascii = 'ńőń ȁŝćȉȉ ŝƭȕƒƒ'
-    _byte_string_non_ascii = _unicode_string_non_ascii.encode('utf-8')
-    _byte_string_windows_encoded = 'Hèllö'.encode('windows-1252')
-
-    @genty_dataset(
-        _unicode_string,
-        _byte_string,
-        _unicode_string_non_ascii,
-        _byte_string_non_ascii,
-        _byte_string_windows_encoded,
-    )
-    def test_tricky_strings_in_test_method_name(self, message):
+class ExampleFlakyTestsWithUnicodeTestNames(ExampleFlakyTests):
+    @genty_dataset('ascii name', 'ńőń ȁŝćȉȉ ŝƭȕƒƒ')
+    def test_non_flaky_thing(self, message):
         # pylint:disable=unused-argument
         self._threshold += 1
         if self._threshold < 1:
-            # Raise an exception with a message that is also tricky. To ensure
-            # that any logging by flaky works correctly
-            raise Exception(message)
+            raise Exception("Threshold is not high enough: {0} vs {1}.".format(
+                self._threshold, 1),
+            )
