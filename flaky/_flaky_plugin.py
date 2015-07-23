@@ -4,7 +4,7 @@ from __future__ import unicode_literals
 from io import StringIO
 from flaky import defaults
 from flaky.names import FlakyNames
-from flaky.utils import ensure_unicode_string
+from flaky.utils import ensure_byte_string, ensure_unicode_string
 
 
 class _FlakyPlugin(object):
@@ -233,7 +233,11 @@ class _FlakyPlugin(object):
             `file`
         """
         stream.write('===Flaky Test Report===\n\n')
-        stream.write(self._stream.getvalue())
+        value = self._stream.getvalue()
+        try:
+            stream.write(value)
+        except UnicodeEncodeError:
+            stream.write(ensure_byte_string(value))
         stream.write('\n===End Flaky Test Report===\n')
 
     @classmethod

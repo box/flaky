@@ -14,3 +14,10 @@ def ensure_unicode_string(string):
         return unicode_type(string)
     except UnicodeDecodeError:
         return string.decode('utf-8', 'replace')
+
+
+def ensure_byte_string(string):
+    try:
+        return str(string)
+    except UnicodeEncodeError:
+        return string.encode('utf-8', 'replace')
