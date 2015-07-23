@@ -233,7 +233,11 @@ class _FlakyPlugin(object):
             `file`
         """
         stream.write('===Flaky Test Report===\n\n')
-        stream.write(self._stream.getvalue())
+        value = self._stream.getvalue()
+        try:
+            stream.write(value)
+        except UnicodeEncodeError:
+            stream.write(value.encode('utf-8', 'replace'))
         stream.write('\n===End Flaky Test Report===\n')
 
     @classmethod
