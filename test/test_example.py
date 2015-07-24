@@ -93,9 +93,9 @@ def test_flaky_function(param=[]):
 class ExampleFlakyTestsWithUnicodeTestNames(ExampleFlakyTests):
     @genty_dataset('ascii name', 'ńőń ȁŝćȉȉ ŝƭȕƒƒ')
     def test_non_flaky_thing(self, message):
-        # pylint:disable=unused-argument
         self._threshold += 1
         if self._threshold < 1:
-            raise Exception("Threshold is not high enough: {0} vs {1}.".format(
-                self._threshold, 1),
+            raise Exception(
+                "Threshold is not high enough: {0} vs {1} for '{2}'.".format(
+                    self._threshold, 1, message),
             )

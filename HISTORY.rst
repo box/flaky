@@ -11,6 +11,9 @@ Release History
 
 - Flaky will no longer raise a KeyError for failed flaky tests.
 
+- Flaky will no longer raise a UnicodeEncodeError for flaky tests which raise exceptions
+  with non-ascii characters.
+
 2.1.0 (2015-05-05)
 ++++++++++++++++++
 
