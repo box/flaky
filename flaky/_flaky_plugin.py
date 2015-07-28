@@ -233,11 +233,17 @@ class _FlakyPlugin(object):
             `file`
         """
         stream.write('===Flaky Test Report===\n\n')
+
+        # Python 2 will write to the stderr stream as a byte string, whereas
+        # Python 3 will write to the stream as text. Only encode into a byte
+        # string if the write tries to encode it first and raises a
+        # UnicodeEncodeError.
         value = self._stream.getvalue()
         try:
             stream.write(value)
         except UnicodeEncodeError:
             stream.write(ensure_byte_string(value))
+
         stream.write('\n===End Flaky Test Report===\n')
 
     @classmethod
