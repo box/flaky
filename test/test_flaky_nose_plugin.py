@@ -186,6 +186,7 @@ class TestFlakyPlugin(TestCase):
         self._mock_test_case.address.assert_called_with()
         self.assertEqual(self._mock_test_case.mock_calls, [call.address()])
         self.assertEqual(self._mock_test.mock_calls, [])
+        self.assertEqual(self._mock_nose_result.mock_calls, [])
 
     def _get_flaky_attributes(self):
         actual_flaky_attributes = dict((

@@ -102,7 +102,7 @@ class _FlakyPlugin(object):
         :type test:
             :class:`Function`
         """
-        raise NotImplementedError
+        raise NotImplementedError  # pragma: no cover
 
     def _handle_test_success(self, test):
         """
@@ -413,7 +413,7 @@ class _FlakyPlugin(object):
         :rtype:
             `tuple` of `object`, `callable`, `unicode`
         """
-        raise NotImplementedError
+        raise NotImplementedError  # pragma: no cover
 
     @classmethod
     def _make_test_flaky(cls, test, max_runs, min_passes):
