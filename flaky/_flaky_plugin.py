@@ -4,7 +4,7 @@ from __future__ import unicode_literals
 from io import StringIO
 from flaky import defaults
 from flaky.names import FlakyNames
-from flaky.utils import ensure_byte_string, ensure_unicode_string
+from flaky.utils import ensure_unicode_string
 
 
 class _FlakyPlugin(object):
@@ -242,7 +242,7 @@ class _FlakyPlugin(object):
         try:
             stream.write(value)
         except UnicodeEncodeError:
-            stream.write(ensure_byte_string(value))
+            stream.write(value.encode('utf-8', 'replace'))
 
         stream.write('\n===End Flaky Test Report===\n')
 
