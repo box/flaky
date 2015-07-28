@@ -3,6 +3,13 @@
 Release History
 ---------------
 
+Upcoming
+++++++++
+
+**Bugfixes**
+
+- Flaky will no longer cause nose to report non-flaky test failures and errors twice.
+
 
 2.1.1 (2015-05-22)
 ++++++++++++++++++
