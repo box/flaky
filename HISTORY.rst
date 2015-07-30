@@ -3,6 +3,14 @@
 Release History
 ---------------
 
+Upcoming
+++++++++
+
+**Bugfixes**
+
+- Flaky will no longer raise a UnicodeEncodeError for flaky tests which raise exceptions
+  with non-ascii characters.
+
 
 2.1.1 (2015-05-22)
 ++++++++++++++++++
@@ -10,6 +18,7 @@ Release History
 **Bugfixes**
 
 - Flaky will no longer raise a KeyError for failed flaky tests.
+
 
 2.1.0 (2015-05-05)
 ++++++++++++++++++
