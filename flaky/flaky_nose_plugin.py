@@ -118,7 +118,7 @@ class FlakyPlugin(_FlakyPlugin, Plugin):
         """
         # pylint:disable=invalid-name
         want_error = self._handle_test_error_or_failure(test, err)
-        if not want_error:
+        if not want_error and self._has_flaky_attributes(test):
             self._nose_result.addError(test, err)
         return want_error
 
@@ -144,7 +144,7 @@ class FlakyPlugin(_FlakyPlugin, Plugin):
         """
         # pylint:disable=invalid-name
         want_failure = self._handle_test_error_or_failure(test, err)
-        if not want_failure:
+        if not want_failure and self._has_flaky_attributes(test):
             self._nose_result.addFailure(test, err)
         return want_failure
 

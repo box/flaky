@@ -10,6 +10,7 @@ Upcoming
 
 - Flaky will no longer raise a UnicodeEncodeError for flaky tests which raise exceptions
   with non-ascii characters.
+- Flaky will no longer cause nose to report non-flaky test failures and errors twice.
 
 
 2.1.1 (2015-05-22)
