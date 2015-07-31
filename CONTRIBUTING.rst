@@ -103,3 +103,7 @@ a description that lets us know what work you did.
 Keep in mind that we like to see one issue addressed per pull request,
 as this helps keep our git history clean and we can more easily track
 down issues.
+
+Finally, please add a note in HISTORY.rst under the Upcoming section
+detailing what's new in your change. These will become the release
+notes for the next release.

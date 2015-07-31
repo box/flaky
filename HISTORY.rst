@@ -6,6 +6,9 @@ Release History
 Upcoming
 ++++++++
 
+2.1.2 (2015-07-30)
+++++++++++++++++++
+
 **Bugfixes**
 
 - Flaky will no longer raise a UnicodeEncodeError for flaky tests which raise exceptions
