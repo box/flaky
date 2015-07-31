@@ -240,14 +240,29 @@ class FlakyPlugin(_FlakyPlugin):
             `tuple` of `object`, `callable`, `unicode`
         """
         callable_name = cls._get_test_callable_name(test)
+        if callable_name.endswith(']') and '[' in callable_name:
+            unparametrized_name = callable_name[:callable_name.index('[')]
+        else:
+            unparametrized_name = callable_name
         test_instance = cls._get_test_instance(test)
         if hasattr(test_instance, callable_name):
+            # Test is a method of a class
             def_and_callable = getattr(test_instance, callable_name)
             return def_and_callable, def_and_callable, callable_name
+        elif hasattr(test_instance, unparametrized_name):
+            # Test is a parametrized method of a class
+            def_and_callable = getattr(test_instance, unparametrized_name)
+            return def_and_callable, def_and_callable, callable_name
         elif hasattr(test, 'runner') and hasattr(test.runner, 'run'):
+            # Test is a doctest
             return test, test.runner.run, callable_name
         elif hasattr(test.module, callable_name):
+            # Test is a function in a module
             def_and_callable = getattr(test.module, callable_name)
+            return def_and_callable, def_and_callable, callable_name
+        elif hasattr(test.module, unparametrized_name):
+            # Test is a parametrized function in a module
+            def_and_callable = getattr(test.module, unparametrized_name)
             return def_and_callable, def_and_callable, callable_name
         else:
             return None, None, callable_name
