@@ -91,10 +91,6 @@ class FlakyPlugin(_FlakyPlugin):
     min_passes = None
     config = None
 
-    @property
-    def stream(self):
-        return self._stream
-
     @staticmethod
     def _get_test_instance(item):
         """

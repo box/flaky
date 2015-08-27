@@ -320,6 +320,40 @@ class TestFlakyPytestPlugin(object):
             for item in expected_flaky_attributes.items()
         )
 
+    def test_flaky_plugin_exits_after_false_rerun_filter(
+            self,
+            flaky_test,
+            flaky_plugin,
+            call_info,
+            string_io,
+            mock_io,
+            mock_error,
+            mock_plugin_rerun,
+    ):
+        flaky(rerun_filter=lambda *args: False)(flaky_test)
+        call_info.when = 'call'
+
+        actual_plugin_handles_failure = flaky_plugin.add_failure(
+            call_info,
+            flaky_test,
+            mock_error,
+        )
+        assert actual_plugin_handles_failure is False
+        assert not mock_plugin_rerun()
+
+        string_io.writelines([
+            self._test_method_name,
+            ' failed and was not selected for rerun.',
+            '\n\t',
+            unicode_type(mock_error.type),
+            '\n\t',
+            unicode_type(mock_error.value),
+            '\n\t',
+            unicode_type(mock_error.traceback),
+            '\n',
+        ])
+        assert string_io.getvalue() == mock_io.getvalue()
+
     @staticmethod
     def _assert_test_ignored(mock_io, string_io, call_info):
         assert call_info
@@ -396,8 +430,9 @@ class TestFlakyPytestPlugin(object):
         current_runs=0,
         max_runs=2,
         min_passes=1,
+        rerun_filter=None,
     ):
-        flaky(max_runs, min_passes)(test)
+        flaky(max_runs, min_passes, rerun_filter)(test)
         if current_errors is None:
             current_errors = [None]
         else:
