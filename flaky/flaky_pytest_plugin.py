@@ -62,6 +62,7 @@ def pytest_configure(config):
         :class:`Configuration`
     """
     PLUGIN.flaky_report = config.option.flaky_report
+    PLUGIN.flaky_success_report = config.option.flaky_success_report
     PLUGIN.force_flaky = config.option.force_flaky
     PLUGIN.max_runs = config.option.max_runs
     PLUGIN.min_passes = config.option.min_passes
@@ -94,6 +95,14 @@ class FlakyPlugin(_FlakyPlugin):
     @property
     def stream(self):
         return self._stream
+
+    @property
+    def flaky_success_report(self):
+        return self._flaky_success_report
+
+    @flaky_success_report.setter
+    def flaky_success_report(self, value):
+        self._flaky_success_report = value
 
     @staticmethod
     def _get_test_instance(item):

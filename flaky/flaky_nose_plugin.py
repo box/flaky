@@ -47,6 +47,7 @@ class FlakyPlugin(_FlakyPlugin, Plugin):
         if not self.enabled:
             return
         self._flaky_report = options.flaky_report
+        self._flaky_success_report = options.flaky_success_report
         self._force_flaky = options.force_flaky
         self._max_runs = options.max_runs
         self._min_passes = options.min_passes

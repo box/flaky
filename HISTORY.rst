@@ -6,6 +6,9 @@ Release History
 Upcoming
 ++++++++
 
+- Flaky now accepts a command line option, `--no-success-flaky-report`.
+  When that option is present, flaky won't add information about test successes to the flaky report.
+
 2.1.2 (2015-07-30)
 ++++++++++++++++++
 

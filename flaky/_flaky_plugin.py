@@ -14,6 +14,7 @@ class _FlakyPlugin(object):
     def __init__(self):
         super(_FlakyPlugin, self).__init__()
         self._stream = StringIO()
+        self._flaky_success_report = True
 
     def _log_test_failure(self, test_callable_name, err, message):
         """
@@ -146,25 +147,27 @@ class _FlakyPlugin(object):
             current_passes
         )
         flaky = self._get_flaky_attributes(test)
-        min_passes = flaky[FlakyNames.MIN_PASSES]
-        self._stream.writelines([
-            ensure_unicode_string(name),
-            ' passed {0} out of the required {1} times. '.format(
-                current_passes,
-                min_passes,
-            ),
-        ])
-        if not self._has_flaky_test_succeeded(flaky):
-            self._stream.write(
-                'Running test again until it passes {0} times.\n'.format(
+        need_reruns = not self._has_flaky_test_succeeded(flaky)
+        if self._flaky_success_report:
+            min_passes = flaky[FlakyNames.MIN_PASSES]
+            self._stream.writelines([
+                ensure_unicode_string(name),
+                ' passed {0} out of the required {1} times. '.format(
+                    current_passes,
                     min_passes,
+                ),
+            ])
+            if need_reruns:
+                self._stream.write(
+                    'Running test again until it passes {0} times.\n'.format(
+                        min_passes,
+                    )
                 )
-            )
+            else:
+                self._stream.write('Success!\n')
+        if need_reruns:
             self._rerun_test(test)
-            return True
-        else:
-            self._stream.write('Success!\n')
-            return False
+        return need_reruns
 
     @staticmethod
     def add_report_option(add_option):
@@ -182,6 +185,15 @@ class _FlakyPlugin(object):
             dest='flaky_report',
             default=True,
             help="Suppress the report at the end of the "
+                 "run detailing flaky test results.",
+        )
+        add_option(
+            '--no-success-flaky-report',
+            action='store_false',
+            dest='flaky_success_report',
+            default=True,
+            help="Suppress reporting flaky test successes"
+                 "in the report at the end of the "
                  "run detailing flaky test results.",
         )
 

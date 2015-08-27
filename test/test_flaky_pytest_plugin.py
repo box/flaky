@@ -189,6 +189,27 @@ def test_flaky_session_finish_copies_flaky_report(
     assert PLUGIN.config.slaveoutput['flaky_report'] == expected_report
 
 
+def test_flaky_plugin_can_suppress_success_report(
+    flaky_test,
+    flaky_plugin,
+    call_info,
+    string_io,
+    mock_io,
+):
+    flaky()(flaky_test)
+    # pylint:disable=protected-access
+    flaky_plugin._flaky_success_report = False
+    # pylint:enable=protected-access
+    call_info.when = 'call'
+    actual_plugin_handles_success = flaky_plugin.add_success(
+        call_info,
+        flaky_test,
+    )
+
+    assert actual_plugin_handles_success is False
+    assert string_io.getvalue() == mock_io.getvalue()
+
+
 class TestFlakyPytestPlugin(object):
     _test_method_name = 'test_method'
 
