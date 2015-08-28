@@ -3,7 +3,7 @@
 from flaky.names import FlakyNames
 
 
-def true(*args):
+def _true(*args):
     """
     Default rerun filter function that always returns True.
     """
@@ -49,5 +49,5 @@ def default_flaky_attributes(max_runs, min_passes, rerun_filter=None):
         FlakyNames.MIN_PASSES: min_passes,
         FlakyNames.CURRENT_RUNS: 0,
         FlakyNames.CURRENT_PASSES: 0,
-        FlakyNames.RERUN_FILTER: FilterWrapper(rerun_filter or true),
+        FlakyNames.RERUN_FILTER: FilterWrapper(rerun_filter or _true),
     }

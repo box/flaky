@@ -330,7 +330,16 @@ class TestFlakyPytestPlugin(object):
             mock_error,
             mock_plugin_rerun,
     ):
-        flaky(rerun_filter=lambda *args: False)(flaky_test)
+        err_tuple = (mock_error.type, mock_error.value, mock_error.traceback)
+
+        def rerun_filter(err, name, test, plugin):
+            assert err == err_tuple
+            assert name == flaky_test.name
+            assert test is flaky_test
+            assert plugin is flaky_plugin
+            return False
+
+        flaky(rerun_filter=rerun_filter)(flaky_test)
         call_info.when = 'call'
 
         actual_plugin_handles_failure = flaky_plugin.add_failure(
