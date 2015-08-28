@@ -18,6 +18,14 @@ class _FlakyPlugin(object):
 
     @property
     def stream(self):
+        """
+        Returns the stream used for building the flaky report.
+        Anything written to this stream before the end of the test run
+        will be written to the flaky report.
+
+        :return:
+        :rtype:
+        """
         return self._stream
 
     def _log_test_failure(self, test_callable_name, err, message):
@@ -43,6 +51,19 @@ class _FlakyPlugin(object):
         least min_passes times.
 
         By default, this means that the test has failed twice.
+
+        :param err:
+            Information about the test failure (from sys.exc_info())
+        :type err:
+            `tuple` of `class`, :class:`Exception`, `traceback`
+        :param flaky:
+            Dictionary of flaky attributes
+        :type flaky:
+            `dict` of `unicode` to varies
+        :param name:
+            The test name
+        :type name:
+            `unicode`
         """
         min_passes = flaky[FlakyNames.MIN_PASSES]
         current_passes = flaky[FlakyNames.CURRENT_PASSES]
@@ -56,6 +77,19 @@ class _FlakyPlugin(object):
         """
         Report that the test has failed, but still has reruns left.
         Then rerun the test.
+
+        :param err:
+            Information about the test failure (from sys.exc_info())
+        :type err:
+            `tuple` of `class`, :class:`Exception`, `traceback`
+        :param flaky:
+            Dictionary of flaky attributes
+        :type flaky:
+            `dict` of `unicode` to varies
+        :param name:
+            The test name
+        :type name:
+            `unicode`
         """
         max_runs = flaky[FlakyNames.MAX_RUNS]
         runs_left = max_runs - flaky[FlakyNames.CURRENT_RUNS]
