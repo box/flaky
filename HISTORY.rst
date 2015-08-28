@@ -6,6 +6,9 @@ Release History
 Upcoming
 ++++++++
 
+2.2.0 (2015-08-28)
+++++++++++++++++++
+
 - The `@flaky` decorator now accepts a `rerun_filter` parameter.
   This allows for failing certain types of failures/errors immediately instead of rerunning.
 - Flaky now accepts a command line option, `--no-success-flaky-report`.
