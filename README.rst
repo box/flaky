@@ -123,6 +123,10 @@ No Flaky Report
 
 Pass ``--no-flaky-report`` to suppress the report at the end of the run detailing flaky test results.
 
+Shorter Flaky Report
+++++++++++++++++++++
+
+Pass ``--no-success-flaky-report`` to suppress information about successful flaky tests.
 
 Force Flaky
 +++++++++++
