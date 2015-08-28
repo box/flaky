@@ -79,6 +79,27 @@ In addition to marking a single test flaky, entire test cases can be marked flak
 The @flaky class decorator will mark test_flaky_doubler as flaky, but it won't override the 3 max_runs
 for test_flaky_tripler (from the decorator on that test method).
 
+Don't rerun certain types of failures
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Depending on your tests, some failures are obviously not due to flakiness. Instead of rerunning
+after those failures, you can specify a filter function that can tell flaky to fail the test right away.
+
+.. code-block:: python
+
+    def is_not_crash(err, *args):
+        return not issubclass(err[0], ProductCrashedError)
+
+    @flaky
+    def test_something():
+        raise ProductCrashedError
+
+    @flaky(rerun_filter=is_not_crash)
+    def test_something_else():
+        raise ProductCrashedError
+
+Flaky will run `test_something` twice, but will only run `test_something_else` once.
+
 Activating the plugin
 ~~~~~~~~~~~~~~~~~~~~~
 

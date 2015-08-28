@@ -6,6 +6,8 @@ Release History
 Upcoming
 ++++++++
 
+- The `@flaky` decorator now accepts a `rerun_filter` parameter.
+  This allows for failing certain types of failures/errors immediately instead of rerunning.
 - Flaky now accepts a command line option, `--no-success-flaky-report`.
   When that option is present, flaky won't add information about test successes to the flaky report.
 

@@ -10,11 +10,24 @@ from flaky.utils import ensure_unicode_string
 class _FlakyPlugin(object):
     _retry_failure_message = ' failed ({0} runs remaining out of {1}).'
     _failure_message = ' failed; it passed {0} out of the required {1} times.'
+    _not_rerun_message = ' failed and was not selected for rerun.'
 
     def __init__(self):
         super(_FlakyPlugin, self).__init__()
         self._stream = StringIO()
         self._flaky_success_report = True
+
+    @property
+    def stream(self):
+        """
+        Returns the stream used for building the flaky report.
+        Anything written to this stream before the end of the test run
+        will be written to the flaky report.
+
+        :return:
+        :rtype:
+        """
+        return self._stream
 
     def _log_test_failure(self, test_callable_name, err, message):
         """
@@ -33,6 +46,60 @@ class _FlakyPlugin(object):
             '\n',
         ])
 
+    def _report_final_failure(self, err, flaky, name):
+        """
+        Report that the test has failed too many times to pass at
+        least min_passes times.
+
+        By default, this means that the test has failed twice.
+
+        :param err:
+            Information about the test failure (from sys.exc_info())
+        :type err:
+            `tuple` of `class`, :class:`Exception`, `traceback`
+        :param flaky:
+            Dictionary of flaky attributes
+        :type flaky:
+            `dict` of `unicode` to varies
+        :param name:
+            The test name
+        :type name:
+            `unicode`
+        """
+        min_passes = flaky[FlakyNames.MIN_PASSES]
+        current_passes = flaky[FlakyNames.CURRENT_PASSES]
+        message = self._failure_message.format(
+            current_passes,
+            min_passes,
+        )
+        self._log_test_failure(name, err, message)
+
+    def _log_intermediate_failure(self, err, flaky, name):
+        """
+        Report that the test has failed, but still has reruns left.
+        Then rerun the test.
+
+        :param err:
+            Information about the test failure (from sys.exc_info())
+        :type err:
+            `tuple` of `class`, :class:`Exception`, `traceback`
+        :param flaky:
+            Dictionary of flaky attributes
+        :type flaky:
+            `dict` of `unicode` to varies
+        :param name:
+            The test name
+        :type name:
+            `unicode`
+        """
+        max_runs = flaky[FlakyNames.MAX_RUNS]
+        runs_left = max_runs - flaky[FlakyNames.CURRENT_RUNS]
+        message = self._retry_failure_message.format(
+            runs_left,
+            max_runs,
+        )
+        self._log_test_failure(name, err, message)
+
     def _handle_test_error_or_failure(self, test, err):
         """
         Handle a flaky test error or failure.
@@ -45,7 +112,7 @@ class _FlakyPlugin(object):
         :param test:
             The test that has raised an error
         :type test:
-            :class:`nose.case.Test`
+            :class:`nose.case.Test` or :class:`Function`
         :param err:
             Information about the test failure (from sys.exc_info())
         :type err:
@@ -76,24 +143,46 @@ class _FlakyPlugin(object):
         flaky = self._get_flaky_attributes(test)
 
         if not self._has_flaky_test_failed(flaky):
-            max_runs = flaky[FlakyNames.MAX_RUNS]
-            runs_left = max_runs - flaky[FlakyNames.CURRENT_RUNS]
-            message = self._retry_failure_message.format(
-                runs_left,
-                max_runs,
-            )
-            self._log_test_failure(name, err, message)
-            self._rerun_test(test)
-            return True
+            if self._should_rerun_test(test, name, err):
+                self._log_intermediate_failure(err, flaky, name)
+                self._rerun_test(test)
+                return True
+            else:
+                message = self._not_rerun_message
+                self._log_test_failure(name, err, message)
+                return False
         else:
-            min_passes = flaky[FlakyNames.MIN_PASSES]
-            current_passes = flaky[FlakyNames.CURRENT_PASSES]
-            message = self._failure_message.format(
-                current_passes,
-                min_passes,
-            )
-            self._log_test_failure(name, err, message)
+            self._report_final_failure(err, flaky, name)
             return False
+
+    def _should_rerun_test(self, test, name, err):
+        """
+        Whether or not a test should be rerun.
+        This is a pass-through to the test's rerun filter.
+
+        A flaky test will only be rerun if it hasn't failed too many
+        times to succeed at least min_passes times, and if
+        this method returns True.
+
+        :param test:
+            The test that has raised an error
+        :type test:
+            :class:`nose.case.Test` or :class:`Function`
+        :param name:
+            The test name
+        :type name:
+            `unicode`
+        :param err:
+            Information about the test failure (from sys.exc_info())
+        :type err:
+            `tuple` of `class`, :class:`Exception`, `traceback`
+        :return:
+            Whether flaky should rerun this test.
+        :rtype:
+            `bool`
+        """
+        rerun_filter = self._get_flaky_attribute(test, FlakyNames.RERUN_FILTER)
+        return rerun_filter(err, name, test, self)
 
     def _rerun_test(self, test):
         """
@@ -325,7 +414,7 @@ class _FlakyPlugin(object):
     @classmethod
     def _has_flaky_attributes(cls, test):
         """
-        Returns true if the test callable in question is marked as flaky.
+        Returns True if the test callable in question is marked as flaky.
         :param test:
             The test that is being prepared to run
         :type test:
