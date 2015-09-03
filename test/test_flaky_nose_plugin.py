@@ -252,6 +252,7 @@ class TestFlakyPlugin(TestCase):
         retries_remaining = current_runs + 1 < max_runs
         too_few_passes = current_passes < min_passes
         expected_plugin_handles_failure = too_few_passes and retries_remaining
+        did_plugin_retry_test = max_runs > 1
 
         self._flaky_plugin.prepareTestCase(self._mock_test_case)
         if is_failure:
@@ -297,14 +298,18 @@ class TestFlakyPlugin(TestCase):
                 '\n',
             ])]
         else:
-            if is_failure:
-                expected_result_calls.append(
-                    call.addFailure(self._mock_test_case, self._mock_error),
-                )
-            else:
-                expected_result_calls.append(
-                    call.addError(self._mock_test_case, self._mock_error),
-                )
+            if did_plugin_retry_test:
+                if is_failure:
+                    expected_result_calls.append(
+                        call.addFailure(
+                            self._mock_test_case,
+                            self._mock_error,
+                        ),
+                    )
+                else:
+                    expected_result_calls.append(
+                        call.addError(self._mock_test_case, self._mock_error),
+                    )
             expected_stream_calls = [call.writelines([
                 self._mock_test_method_name,
                 ' failed; it passed {0} out of the required {1} times.'.format(
