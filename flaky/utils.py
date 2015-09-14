@@ -13,4 +13,4 @@ def ensure_unicode_string(string):
     try:
         return unicode_type(string)
     except UnicodeDecodeError:
-        return string.decode('utf-8', 'replace')
+        return str(string).decode('utf-8', 'replace')
