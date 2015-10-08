@@ -6,6 +6,9 @@ Release History
 Upcoming
 ++++++++
 
+- Added support and testing for Python 3.5
+- Fixed tests on Python 2.6 with latest version of py.test
+
 2.2.0 (2015-08-28)
 ++++++++++++++++++
 

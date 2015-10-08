@@ -96,7 +96,7 @@ class TestFlakySubclass(TestExampleFlakyTestCase):
 
 def _test_flaky_doctest():
     """
-    Flaky ignored doctests. This test wouldn't be rerun if it failed.
+    Flaky ignores doctests. This test wouldn't be rerun if it failed.
     >>> _test_flaky_doctest()
     True
     """
