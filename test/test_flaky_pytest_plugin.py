@@ -210,6 +210,33 @@ def test_flaky_plugin_can_suppress_success_report(
     assert string_io.getvalue() == mock_io.getvalue()
 
 
+def test_flaky_plugin_raises_errors_in_fixture_setup(
+        flaky_test,
+        flaky_plugin,
+        string_io,
+        mock_io,
+):
+    """
+    Test for Issue #57 - fixtures which raise an error should show up as
+    test errors.
+
+    This test ensures that exceptions occurring when running a test
+    fixture are copied into the call info's excinfo field.
+    """
+    def error_raising_setup_function(item):
+        assert item is flaky_test
+        item.ran_setup = True
+        return 5 / 0
+
+    flaky()(flaky_test)
+    flaky_test.ihook = Mock()
+    flaky_test.ihook.pytest_runtest_setup = error_raising_setup_function
+    call_info = flaky_plugin.call_runtest_hook(flaky_test, 'setup')
+    assert flaky_test.ran_setup
+    assert string_io.getvalue() == mock_io.getvalue()
+    assert call_info.excinfo.type is ZeroDivisionError
+
+
 class TestFlakyPytestPlugin(object):
     _test_method_name = 'test_method'
 
