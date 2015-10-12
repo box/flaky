@@ -3,6 +3,7 @@ coveralls
 genty
 mock
 nose
+ordereddict
 pep8
 pylint
 pytest
