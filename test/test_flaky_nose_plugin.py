@@ -2,7 +2,8 @@
 
 from __future__ import unicode_literals
 from io import StringIO
-from mock import call, MagicMock, Mock, patch
+import mock
+from mock import MagicMock, Mock, patch
 from flaky import defaults
 from flaky.flaky_decorator import flaky
 from flaky import flaky_nose_plugin
@@ -184,7 +185,10 @@ class TestFlakyPlugin(TestCase):
 
     def _assert_test_ignored(self):
         self._mock_test_case.address.assert_called_with()
-        self.assertEqual(self._mock_test_case.mock_calls, [call.address()])
+        self.assertEqual(
+            self._mock_test_case.mock_calls,
+            [mock.call.address()],
+        )
         self.assertEqual(self._mock_test.mock_calls, [])
         self.assertEqual(self._mock_nose_result.mock_calls, [])
 
@@ -280,11 +284,11 @@ class TestFlakyPlugin(TestCase):
                 FlakyNames.CURRENT_ERRORS: tuple(current_errors),
             },
         )
-        expected_test_case_calls = [call.address(), call.address()]
+        expected_test_case_calls = [mock.call.address(), mock.call.address()]
         expected_result_calls = []
         if expected_plugin_handles_failure:
             expected_test_case_calls.append(('__hash__',))
-            expected_stream_calls = [call.writelines([
+            expected_stream_calls = [mock.call.writelines([
                 self._mock_test_method_name,
                 ' failed ({0} runs remaining out of {1}).'.format(
                     max_runs - current_runs - 1, max_runs
@@ -301,16 +305,17 @@ class TestFlakyPlugin(TestCase):
             if did_plugin_retry_test:
                 if is_failure:
                     expected_result_calls.append(
-                        call.addFailure(
+                        mock.call.addFailure(
                             self._mock_test_case,
                             self._mock_error,
                         ),
                     )
                 else:
-                    expected_result_calls.append(
-                        call.addError(self._mock_test_case, self._mock_error),
-                    )
-            expected_stream_calls = [call.writelines([
+                    expected_result_calls.append(mock.call.addError(
+                        self._mock_test_case,
+                        self._mock_error,
+                    ))
+            expected_stream_calls = [mock.call.writelines([
                 self._mock_test_method_name,
                 ' failed; it passed {0} out of the required {1} times.'.format(
                     current_passes,
@@ -379,8 +384,8 @@ class TestFlakyPlugin(TestCase):
                 FlakyNames.CURRENT_PASSES: current_passes + 1,
             },
         )
-        expected_test_case_calls = [call.address(), call.address()]
-        expected_stream_calls = [call.writelines([
+        expected_test_case_calls = [mock.call.address(), mock.call.address()]
+        expected_stream_calls = [mock.call.writelines([
             self._mock_test_method_name,
             " passed {0} out of the required {1} times. ".format(
                 current_passes + 1, min_passes,
@@ -389,14 +394,14 @@ class TestFlakyPlugin(TestCase):
         if expected_plugin_handles_success:
             expected_test_case_calls.append(('__hash__',))
             expected_stream_calls.append(
-                call.write(
+                mock.call.write(
                     'Running test again until it passes {0} times.\n'.format(
                         min_passes,
                     ),
                 ),
             )
         else:
-            expected_stream_calls.append(call.write('Success!\n'))
+            expected_stream_calls.append(mock.call.write('Success!\n'))
         self.assertEqual(
             self._mock_test_case.mock_calls,
             expected_test_case_calls,
@@ -416,8 +421,8 @@ class TestFlakyPlugin(TestCase):
         self.assertEqual(
             mock_stream.mock_calls,
             [
-                call.write('===Flaky Test Report===\n\n'),
-                call.write(expected_stream_value),
-                call.write('\n===End Flaky Test Report===\n'),
+                mock.call.write('===Flaky Test Report===\n\n'),
+                mock.call.write(expected_stream_value),
+                mock.call.write('\n===End Flaky Test Report===\n'),
             ],
         )
