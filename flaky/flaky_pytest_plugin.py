@@ -1,7 +1,6 @@
 # coding: utf-8
 
 from __future__ import unicode_literals
-from time import time
 import py
 
 # pylint:disable=import-error
@@ -312,15 +311,11 @@ class FlakyCallInfo(CallInfo):
         # pylint:disable=super-init-not-called
         #: context of invocation: one of "setup", "call",
         #: "teardown", "memocollect"
-        self.when = when
-        self.start = time()
         self._item = item
         self._want_rerun = []
         self.excinfo = None
-        try:
-            self.call(func, plugin)
-        finally:
-            self.stop = time()
+        from functools import partial
+        CallInfo.__init__(self, partial(self.call, func, plugin), when)
 
     def _handle_error(self, plugin):
         """
@@ -373,6 +368,8 @@ class FlakyCallInfo(CallInfo):
         except:
             if is_call:
                 self._handle_error(plugin)
+            else:
+                raise
         else:
             if is_call:
                 if self.excinfo is not None:
