@@ -2,9 +2,13 @@
 
 from __future__ import unicode_literals
 from io import StringIO
+import multiprocessing
 from flaky import defaults
 from flaky.names import FlakyNames
 from flaky.utils import ensure_unicode_string
+
+MULTIPROCESS_MANAGER = multiprocessing.Manager()
+MP_STREAM = MULTIPROCESS_MANAGER.list()
 
 
 class _FlakyPlugin(object):
@@ -14,7 +18,7 @@ class _FlakyPlugin(object):
 
     def __init__(self):
         super(_FlakyPlugin, self).__init__()
-        self._stream = StringIO()
+        self._stream = MP_STREAM
         self._flaky_success_report = True
 
     @property
@@ -34,7 +38,7 @@ class _FlakyPlugin(object):
         Add messaging about a test failure to the stream, which will be
         printed by the plugin's report method.
         """
-        self._stream.writelines([
+        self._stream.extend([
             ensure_unicode_string(test_callable_name),
             message,
             '\n\t',
@@ -239,7 +243,7 @@ class _FlakyPlugin(object):
         need_reruns = not self._has_flaky_test_succeeded(flaky)
         if self._flaky_success_report:
             min_passes = flaky[FlakyNames.MIN_PASSES]
-            self._stream.writelines([
+            self._stream.extend([
                 ensure_unicode_string(name),
                 ' passed {0} out of the required {1} times. '.format(
                     current_passes,
@@ -247,13 +251,13 @@ class _FlakyPlugin(object):
                 ),
             ])
             if need_reruns:
-                self._stream.write(
-                    'Running test again until it passes {0} times.\n'.format(
+                self._stream.extend(
+                    'Running test again until it passes {0} times.'.format(
                         min_passes,
                     )
                 )
             else:
-                self._stream.write('Success!\n')
+                self._stream.extend('Success!')
         if need_reruns:
             self._rerun_test(test)
         return need_reruns
@@ -339,7 +343,7 @@ class _FlakyPlugin(object):
         # Python 3 will write to the stream as text. Only encode into a byte
         # string if the write tries to encode it first and raises a
         # UnicodeEncodeError.
-        value = self._stream.getvalue()
+        value = "\n".join(i for i in self._stream)
         try:
             stream.write(value)
         except UnicodeEncodeError:
