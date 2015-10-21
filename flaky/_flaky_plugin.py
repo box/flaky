@@ -41,13 +41,9 @@ class _FlakyPlugin(object):
         self._stream.extend([
             ensure_unicode_string(test_callable_name),
             message,
-            '\n\t',
-            ensure_unicode_string(err[0]),
-            '\n\t',
-            ensure_unicode_string(err[1]),
-            '\n\t',
-            ensure_unicode_string(err[2]),
-            '\n',
+            "\t" + ensure_unicode_string(err[0]),
+            "\t" + ensure_unicode_string(err[1]),
+            "\t" + ensure_unicode_string(err[2]),
         ])
 
     def _report_final_failure(self, err, flaky, name):
@@ -243,21 +239,17 @@ class _FlakyPlugin(object):
         need_reruns = not self._has_flaky_test_succeeded(flaky)
         if self._flaky_success_report:
             min_passes = flaky[FlakyNames.MIN_PASSES]
-            self._stream.extend([
-                ensure_unicode_string(name),
-                ' passed {0} out of the required {1} times. '.format(
-                    current_passes,
-                    min_passes,
-                ),
-            ])
+            success_string = ensure_unicode_string(name) + ' passed {0} out of the required {1} times. '.format(
+                current_passes,
+                min_passes,
+            )
             if need_reruns:
-                self._stream.extend(
-                    'Running test again until it passes {0} times.'.format(
-                        min_passes,
-                    )
+                success_string += 'Running test again until it passes {0} times.'.format(
+                    min_passes,
                 )
             else:
-                self._stream.extend('Success!')
+                success_string += 'Success!'
+            self._stream.append(success_string)
         if need_reruns:
             self._rerun_test(test)
         return need_reruns
@@ -349,7 +341,7 @@ class _FlakyPlugin(object):
         except UnicodeEncodeError:
             stream.write(value.encode('utf-8', 'replace'))
 
-        stream.write('\n===End Flaky Test Report===\n')
+        stream.write('\n\n===End Flaky Test Report===\n')
 
     @classmethod
     def _copy_flaky_attributes(cls, test, test_class):
