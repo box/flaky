@@ -63,5 +63,5 @@ class TestFlakyPlugin(TestCase):
         stream = StringIO()
         stream.write('ascii stuff')
         # pylint:disable=protected-access
-        self._flaky_plugin._stream.write(message)
+        self._flaky_plugin._stream.append(message)
         self._flaky_plugin._add_flaky_report(stream)
