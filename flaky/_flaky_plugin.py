@@ -1,7 +1,6 @@
 # coding: utf-8
 
 from __future__ import unicode_literals
-from io import StringIO
 import multiprocessing
 from flaky import defaults
 from flaky.names import FlakyNames
