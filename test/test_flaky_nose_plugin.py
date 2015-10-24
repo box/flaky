@@ -1,12 +1,12 @@
 # coding: utf-8
 
 from __future__ import unicode_literals
-from io import StringIO
 import mock
 from mock import MagicMock, Mock, patch
 from flaky import defaults
 from flaky.flaky_decorator import flaky
 from flaky import flaky_nose_plugin
+from flaky.flaky_nose_plugin import StringIOProxy, MP_STREAM
 from flaky.names import FlakyNames
 from flaky.utils import unicode_type
 from test.base_test_case import TestCase
@@ -16,14 +16,12 @@ class TestFlakyPlugin(TestCase):
     def setUp(self):
         super(TestFlakyPlugin, self).setUp()
 
-        test_base_mod = 'flaky._flaky_plugin'
+        del MP_STREAM[:]
         self._mock_test_result = MagicMock()
-        self._mock_stream = MagicMock(spec=StringIO)
+        self._mock_stream = MagicMock(spec=StringIOProxy)
         with patch.object(flaky_nose_plugin, 'TextTestResult') as flaky_result:
-            with patch(test_base_mod + '.StringIO') as string_io:
-                string_io.return_value = self._mock_stream
-                flaky_result.return_value = self._mock_test_result
-                self._flaky_plugin = flaky_nose_plugin.FlakyPlugin()
+            flaky_result.return_value = self._mock_test_result
+            self._flaky_plugin = flaky_nose_plugin.FlakyPlugin()
         self._mock_nose_result = Mock(flaky_nose_plugin.TextTestResult)
         self._flaky_plugin.prepareTestResult(self._mock_nose_result)
         self._mock_test = MagicMock(name='flaky_plugin_test')
@@ -288,8 +286,8 @@ class TestFlakyPlugin(TestCase):
         expected_result_calls = []
         if expected_plugin_handles_failure:
             expected_test_case_calls.append(('__hash__',))
-            expected_stream_calls = [mock.call.writelines([
-                self._mock_test_method_name,
+            expected_stream_calls = ''.join([
+                self._mock_test_method_name +
                 ' failed ({0} runs remaining out of {1}).'.format(
                     max_runs - current_runs - 1, max_runs
                 ),
@@ -300,7 +298,7 @@ class TestFlakyPlugin(TestCase):
                 '\n\t',
                 unicode_type(self._mock_error[2]),
                 '\n',
-            ])]
+            ])
         else:
             if did_plugin_retry_test:
                 if is_failure:
@@ -315,8 +313,8 @@ class TestFlakyPlugin(TestCase):
                         self._mock_test_case,
                         self._mock_error,
                     ))
-            expected_stream_calls = [mock.call.writelines([
-                self._mock_test_method_name,
+            expected_stream_calls = ''.join([
+                self._mock_test_method_name +
                 ' failed; it passed {0} out of the required {1} times.'.format(
                     current_passes,
                     min_passes
@@ -328,7 +326,7 @@ class TestFlakyPlugin(TestCase):
                 '\n\t',
                 unicode_type(self._mock_error[2]),
                 '\n'
-            ])]
+            ])
         self.assertEqual(
             self._mock_nose_result.mock_calls,
             expected_result_calls,
@@ -341,7 +339,7 @@ class TestFlakyPlugin(TestCase):
                 expected_test_case_calls
             )
         )
-        self.assertEqual(self._mock_stream.mock_calls, expected_stream_calls)
+        self.assertEqual(''.join(MP_STREAM), expected_stream_calls)
 
     def _test_flaky_plugin_handles_success(
         self,
@@ -385,23 +383,21 @@ class TestFlakyPlugin(TestCase):
             },
         )
         expected_test_case_calls = [mock.call.address(), mock.call.address()]
-        expected_stream_calls = [mock.call.writelines([
-            self._mock_test_method_name,
+        expected_stream_calls = ''.join([
+            self._mock_test_method_name +
             " passed {0} out of the required {1} times. ".format(
-                current_passes + 1, min_passes,
+                current_passes + 1,
+                min_passes,
             ),
-        ])]
+        ])
         if expected_plugin_handles_success:
+            _rerun_text = 'Running test again until it passes {0} times.\n'
             expected_test_case_calls.append(('__hash__',))
-            expected_stream_calls.append(
-                mock.call.write(
-                    'Running test again until it passes {0} times.\n'.format(
-                        min_passes,
-                    ),
-                ),
-            )
+            expected_stream_calls += _rerun_text.format(
+                min_passes,
+                )
         else:
-            expected_stream_calls.append(mock.call.write('Success!\n'))
+            expected_stream_calls += 'Success!\n'
         self.assertEqual(
             self._mock_test_case.mock_calls,
             expected_test_case_calls,
@@ -410,11 +406,11 @@ class TestFlakyPlugin(TestCase):
                 expected_test_case_calls,
             ),
         )
-        self.assertEqual(self._mock_stream.mock_calls, expected_stream_calls)
+        self.assertEqual(''.join(MP_STREAM), expected_stream_calls)
 
     def _test_flaky_plugin_report(self, expected_stream_value):
-        mock_stream = MagicMock()
-        self._mock_stream.getvalue.return_value = expected_stream_value
+        mock_stream = Mock(spec=StringIOProxy)
+        MP_STREAM.append(expected_stream_value)
 
         self._flaky_plugin.report(mock_stream)
 

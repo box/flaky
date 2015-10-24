@@ -2,6 +2,7 @@
 
 from __future__ import unicode_literals
 import logging
+import multiprocessing
 from optparse import OptionGroup
 from nose.failure import Failure
 from nose.plugins import Plugin
@@ -9,6 +10,10 @@ from nose.result import TextTestResult
 import os
 
 from flaky._flaky_plugin import _FlakyPlugin
+
+# Create global ListProxy object for multiprocessing support
+MULTIPROCESS_MANAGER = multiprocessing.Manager()
+MP_STREAM = MULTIPROCESS_MANAGER.list()  # pylint: disable=no-member
 
 
 class FlakyPlugin(_FlakyPlugin, Plugin):
@@ -20,6 +25,8 @@ class FlakyPlugin(_FlakyPlugin, Plugin):
     def __init__(self):
         super(FlakyPlugin, self).__init__()
         self._logger = logging.getLogger('nose.plugins.flaky')
+        # override base implementation of _stream
+        self._stream = StringIOProxy()
         self._flaky_result = TextTestResult(self._stream, [], 0)
         self._nose_result = None
         self._flaky_report = True
@@ -257,3 +264,42 @@ class FlakyPlugin(_FlakyPlugin, Plugin):
             getattr(test.test, 'test', test.test),
         )
         return test_callable, test_callable, callable_name
+
+
+class StringIOProxy(object):
+    """
+    Provide an interface to the multiprocessing ListProxy. The
+    multiprocessing ListProxy is a global object that is instantiated before
+    this class would be called, so this is an object class.
+    """
+
+    def __init__(self):
+        """
+        Interface with the MP_STREAM ListProxy object
+        """
+        self.proxy = MP_STREAM
+
+    @staticmethod
+    def getvalue():
+        """
+        Shadow the StringIO method
+        """
+        return "".join(i for i in MP_STREAM)
+
+    def writelines(self, content_list):
+        """
+        Shadow the StringIO method. Ingests a list and
+        translates that to a string
+        """
+        # every time we see a "\n" we should make a new list item
+
+        for i in content_list:
+            if '\n' in i:
+                i.strip('\n')
+                self.proxy.append(i)
+            else:
+                self.proxy.insert(len(self.proxy), i)
+
+    def write(self, content):
+        content.strip('\n')
+        self.proxy.append(content)
