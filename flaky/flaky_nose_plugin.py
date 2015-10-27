@@ -20,10 +20,9 @@ class FlakyPlugin(_FlakyPlugin, Plugin):
     def __init__(self):
         super(FlakyPlugin, self).__init__()
         self._logger = logging.getLogger('nose.plugins.flaky')
-        # override base implementation of _stream
+        self._flaky_result = None
         self._nose_result = None
         self._flaky_report = True
-        self._flaky_result = None
         self._force_flaky = False
         self._max_runs = None
         self._min_passes = None
@@ -44,6 +43,21 @@ class FlakyPlugin(_FlakyPlugin, Plugin):
         parser.add_option_group(group)
 
     def _get_stream(self, multiprocess=False):
+        """
+        Get the stream used to store the flaky report.
+        If this nose run is going to use the multiprocess plugin, then use
+        a multiprocess-list backed StringIO proxy; otherwise, use the default
+        stream.
+
+        :param multiprocess:
+            Whether or not this test run is configured for multiprocessing.
+        :type multiprocess:
+            `bool`
+        :return:
+            The stream to use for storing the flaky report.
+        :rtype:
+            :class:`StringIO` or :class:`MultiprocessingStringIO`
+        """
         if multiprocess:
             from flaky.multiprocess_string_io import MultiprocessingStringIO
             return MultiprocessingStringIO()
