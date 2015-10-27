@@ -106,4 +106,5 @@ down issues.
 
 Finally, please add a note in HISTORY.rst under the Upcoming section
 detailing what's new in your change. These will become the release
-notes for the next release.
+notes for the next release. In addition, feel free to add yourself to
+AUTHORS.rst if you aren't already listed.

@@ -20,7 +20,7 @@ class FlakyPlugin(_FlakyPlugin, Plugin):
     def __init__(self):
         super(FlakyPlugin, self).__init__()
         self._logger = logging.getLogger('nose.plugins.flaky')
-        self._flaky_result = TextTestResult(self._stream, [], 0)
+        self._flaky_result = None
         self._nose_result = None
         self._flaky_report = True
         self._force_flaky = False
@@ -42,11 +42,36 @@ class FlakyPlugin(_FlakyPlugin, Plugin):
         self.add_force_flaky_options(group.add_option)
         parser.add_option_group(group)
 
+    def _get_stream(self, multiprocess=False):
+        """
+        Get the stream used to store the flaky report.
+        If this nose run is going to use the multiprocess plugin, then use
+        a multiprocess-list backed StringIO proxy; otherwise, use the default
+        stream.
+
+        :param multiprocess:
+            Whether or not this test run is configured for multiprocessing.
+        :type multiprocess:
+            `bool`
+        :return:
+            The stream to use for storing the flaky report.
+        :rtype:
+            :class:`StringIO` or :class:`MultiprocessingStringIO`
+        """
+        if multiprocess:
+            from flaky.multiprocess_string_io import MultiprocessingStringIO
+            return MultiprocessingStringIO()
+        else:
+            return self._stream
+
     def configure(self, options, conf):
         """Base class override."""
         super(FlakyPlugin, self).configure(options, conf)
         if not self.enabled:
             return
+        is_multiprocess = getattr(options, 'multiprocess_workers', 0) > 0
+        self._stream = self._get_stream(is_multiprocess)
+        self._flaky_result = TextTestResult(self._stream, [], 0)
         self._flaky_report = options.flaky_report
         self._flaky_success_report = options.flaky_success_report
         self._force_flaky = options.force_flaky
