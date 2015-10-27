@@ -6,6 +6,9 @@ Release History
 Upcoming
 ++++++++
 
+2.4.0 (2015-10-27)
+++++++++++++++++++
+
 **Bugfixes**
 - The flaky report is now available under nose with the multiprocessing plugin.
 
