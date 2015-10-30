@@ -107,6 +107,14 @@ class FlakyPlugin(_FlakyPlugin, Plugin):
         # pylint:disable=invalid-name
         if self._test_status[test]:
             self._tests_that_reran.add(id(test))
+            is_django_live_server = 'LiveServerTestCase' in \
+                                    [c.__name__ for c in test.test.__class__.mro()]
+            if is_django_live_server and hasattr(test.test, '_post_teardown'):
+                test.test._post_teardown()
+
+            if is_django_live_server and hasattr(test.test, '_pre_setup'):
+                test.test._pre_setup()
+
             test.run(self._flaky_result)
         self._test_status.pop(test, None)
 
