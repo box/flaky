@@ -2,3 +2,4 @@ Flaky is an open source project supported by `Box <https://box.com>`_ that was b
 our testing framework. This is a list of contributors.
 
 - `@Jeff-Meadows <https://github.com/Jeff-Meadows>`_
+- `@benpatterson <https://github.com/benpatterson>`_
