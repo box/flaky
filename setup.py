@@ -28,14 +28,14 @@ def main():
     base_dir = dirname(__file__)
     setup(
         name='flaky',
-        version='2.4.0',
+        version='2.4.1',
         description='Plugin for nose or py.test that automatically reruns flaky tests.',
         long_description=open(join(base_dir, 'README.rst')).read(),
         author='Box',
         author_email='oss@box.com',
         url='https://github.com/box/flaky',
         license=open(join(base_dir, 'LICENSE')).read(),
-        packages=find_packages(exclude=['test']),
+        packages=find_packages(exclude=['test*']),
         test_suite='test',
         tests_require=['pytest', 'nose'],
         zip_safe=False,

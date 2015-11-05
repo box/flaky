@@ -8,7 +8,7 @@ from __future__ import unicode_literals
 from genty import genty, genty_dataset
 
 from flaky import flaky
-from test.base_test_case import TestCase, expectedFailure, skip
+from test.test_case_base import TestCase, expectedFailure, skip
 
 
 class ExampleTests(TestCase):

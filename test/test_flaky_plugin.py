@@ -5,7 +5,7 @@ from genty import genty, genty_dataset
 from io import StringIO
 from flaky._flaky_plugin import _FlakyPlugin
 from flaky.names import FlakyNames
-from test.base_test_case import TestCase
+from test.test_case_base import TestCase
 
 
 @genty

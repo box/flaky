@@ -9,7 +9,7 @@ from flaky.flaky_decorator import flaky
 from flaky import flaky_nose_plugin
 from flaky.names import FlakyNames
 from flaky.utils import unicode_type
-from test.base_test_case import TestCase
+from test.test_case_base import TestCase
 
 
 @genty

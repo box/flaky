@@ -7,7 +7,7 @@ from __future__ import unicode_literals
 # command line.
 
 from flaky import flaky
-from test.base_test_case import TestCase
+from test.test_case_base import TestCase
 
 
 class ExampleTests(TestCase):
