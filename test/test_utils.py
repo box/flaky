@@ -5,7 +5,7 @@ from __future__ import unicode_literals
 from genty import genty, genty_dataset
 import sys
 from flaky.utils import ensure_unicode_string, unicode_type
-from test.base_test_case import TestCase
+from test.test_case_base import TestCase
 
 
 @genty

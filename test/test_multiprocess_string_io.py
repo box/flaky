@@ -5,7 +5,7 @@ from __future__ import unicode_literals
 from genty import genty, genty_dataset
 from io import StringIO
 
-from test.base_test_case import TestCase
+from test.test_case_base import TestCase
 
 
 @genty
