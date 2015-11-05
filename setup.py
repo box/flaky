@@ -35,7 +35,7 @@ def main():
         author_email='oss@box.com',
         url='https://github.com/box/flaky',
         license=open(join(base_dir, 'LICENSE')).read(),
-        packages=find_packages(exclude=['test']),
+        packages=find_packages(exclude=['test*']),
         test_suite='test',
         tests_require=['pytest', 'nose'],
         zip_safe=False,
