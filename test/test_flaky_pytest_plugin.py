@@ -9,17 +9,13 @@ import pytest
 from flaky import flaky
 from flaky import _flaky_plugin
 from flaky.flaky_pytest_plugin import (
+    CallInfo,
     FlakyPlugin,
-    FlakyCallInfo,
     FlakyXdist,
     PLUGIN,
-    pytest_sessionfinish,
 )
 from flaky.names import FlakyNames
 from flaky.utils import unicode_type
-
-
-# pylint:disable=redefined-outer-name
 
 
 @pytest.fixture
@@ -107,7 +103,7 @@ class MockTestItem(object):
         pass
 
 
-class MockFlakyCallInfo(FlakyCallInfo):
+class MockFlakyCallInfo(CallInfo):
     def __init__(self, item, when):
         # pylint:disable=super-init-not-called
         # super init not called because it has unwanted side effects
@@ -123,7 +119,7 @@ def test_flaky_plugin_report(flaky_plugin, mock_io, string_io):
     expected_string_io.write(flaky_report)
     expected_string_io.write('\n===End Flaky Test Report===\n')
     mock_io.write(flaky_report)
-    flaky_plugin.terminal_summary(string_io)
+    flaky_plugin.pytest_terminal_summary(string_io)
     assert string_io.getvalue() == expected_string_io.getvalue()
 
 
@@ -147,7 +143,7 @@ def test_flaky_xdist_nodedown(
         assign_slaveoutput,
         mock_xdist_error
 ):
-    flaky_xdist = FlakyXdist()
+    flaky_xdist = FlakyXdist(PLUGIN)
     node = Mock()
     if assign_slaveoutput:
         node.slaveoutput = mock_xdist_node_slaveoutput
@@ -185,7 +181,7 @@ def test_flaky_session_finish_copies_flaky_report(
     PLUGIN.stream.write(stream_report)
     PLUGIN.config = Mock()
     PLUGIN.config.slaveoutput = {'flaky_report': initial_report}
-    pytest_sessionfinish()
+    PLUGIN.pytest_sessionfinish()
     assert PLUGIN.config.slaveoutput['flaky_report'] == expected_report
 
 
@@ -201,10 +197,7 @@ def test_flaky_plugin_can_suppress_success_report(
     flaky_plugin._flaky_success_report = False
     # pylint:enable=protected-access
     call_info.when = 'call'
-    actual_plugin_handles_success = flaky_plugin.add_success(
-        call_info,
-        flaky_test,
-    )
+    actual_plugin_handles_success = flaky_plugin.add_success(flaky_test)
 
     assert actual_plugin_handles_success is False
     assert string_io.getvalue() == mock_io.getvalue()
@@ -283,7 +276,7 @@ class TestFlakyPytestPlugin(object):
         string_io,
         mock_io,
     ):
-        flaky_plugin.add_success(call_info, flaky_test)
+        flaky_plugin.add_success(flaky_test)
         self._assert_test_ignored(mock_io, string_io, call_info)
 
     def test_flaky_plugin_ignores_failure_for_non_flaky_test(
@@ -294,7 +287,7 @@ class TestFlakyPytestPlugin(object):
         string_io,
         mock_io,
     ):
-        flaky_plugin.add_failure(call_info, flaky_test, None)
+        flaky_plugin.add_failure(flaky_test, None)
         self._assert_test_ignored(mock_io, string_io, call_info)
 
     def test_flaky_plugin_handles_failure(
@@ -391,7 +384,6 @@ class TestFlakyPytestPlugin(object):
         call_info.when = 'call'
 
         actual_plugin_handles_failure = flaky_plugin.add_failure(
-            call_info,
             flaky_test,
             mock_error,
         )
@@ -445,10 +437,7 @@ class TestFlakyPytestPlugin(object):
         expected_plugin_handles_success = too_few_passes and retries_remaining
 
         info.when = 'call'
-        actual_plugin_handles_success = plugin.add_success(
-            info,
-            test,
-        )
+        actual_plugin_handles_success = plugin.add_success(test)
 
         assert expected_plugin_handles_success == actual_plugin_handles_success
         self._assert_flaky_attributes_contains(
@@ -516,7 +505,6 @@ class TestFlakyPytestPlugin(object):
 
         info.when = 'call'
         actual_plugin_handles_failure = plugin.add_failure(
-            info,
             test,
             mock_error,
         )
