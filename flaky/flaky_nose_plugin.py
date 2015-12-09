@@ -71,7 +71,7 @@ class FlakyPlugin(_FlakyPlugin, Plugin):
         super(FlakyPlugin, self).configure(options, conf)
         if not self.enabled:
             return
-        is_multiprocess = getattr(options, 'multiprocess_workers', 0) > 0
+        is_multiprocess = int(getattr(options, 'multiprocess_workers', 0)) > 0
         self._stream = self._get_stream(is_multiprocess)
         self._flaky_result = TextTestResult(self._stream, [], 0)
         self._flaky_report = options.flaky_report
