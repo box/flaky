@@ -1,12 +1,14 @@
 # coding: utf-8
 
 from __future__ import unicode_literals
+
 import logging
 from optparse import OptionGroup
+import os
+
 from nose.failure import Failure
 from nose.plugins import Plugin
 from nose.result import TextTestResult
-import os
 
 from flaky._flaky_plugin import _FlakyPlugin
 
