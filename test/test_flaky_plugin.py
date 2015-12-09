@@ -1,8 +1,11 @@
 # coding: utf-8
 
 from __future__ import unicode_literals
-from genty import genty, genty_dataset
+
 from io import StringIO
+
+from genty import genty, genty_dataset
+
 from flaky._flaky_plugin import _FlakyPlugin
 from flaky.names import FlakyNames
 from test.test_case_base import TestCase
