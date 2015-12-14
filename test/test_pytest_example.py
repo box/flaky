@@ -19,17 +19,9 @@ def test_something_flaky(dummy_list=[]):
     assert len(dummy_list) > 1
 
 
-@pytest.fixture(scope='class')
-def threshold_provider():
-    return {'threshold': -1}
-
-
-@pytest.fixture(scope='class')
-def threshold_provider_2():
-    return {'threshold': -1}
-
-
 class TestExample(object):
+    _threshold = -1
+
     def test_non_flaky_thing(self):
         """Flaky will not interact with this test"""
         pass
@@ -39,25 +31,23 @@ class TestExample(object):
         """Flaky will also not interact with this test"""
         assert self == 1
 
-    @staticmethod
     @flaky(3, 2)
-    def test_flaky_thing_that_fails_then_succeeds(threshold_provider):
+    def test_flaky_thing_that_fails_then_succeeds(self):
         """
         Flaky will run this test 3 times.
         It will fail once and then succeed twice.
         """
-        threshold_provider['threshold'] += 1
-        assert threshold_provider['threshold'] >= 1
+        TestExample._threshold += 1
+        assert TestExample._threshold >= 1
 
-    @staticmethod
     @flaky(3, 2)
-    def test_flaky_thing_that_succeeds_then_fails_then_succeeds(threshold_provider_2):
+    def test_flaky_thing_that_succeeds_then_fails_then_succeeds(self):
         """
         Flaky will run this test 3 times.
         It will succeed once, fail once, and then succeed one more time.
         """
-        threshold_provider_2['threshold'] += 1
-        assert threshold_provider_2['threshold'] != 1
+        TestExample._threshold += 1
+        assert TestExample._threshold != 1
 
     @flaky(2, 2)
     def test_flaky_thing_that_always_passes(self):

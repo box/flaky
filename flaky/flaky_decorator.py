@@ -10,6 +10,7 @@ def flaky(max_runs=None, min_passes=None, rerun_filter=None):
     Decorator used to mark a test as "flaky". When used in conjuction with
     the flaky nosetests plugin, will cause the decorated test to be retried
     until min_passes successes are achieved out of up to max_runs test runs.
+
     :param max_runs:
         The maximum number of times the decorated test will be run.
     :type max_runs:

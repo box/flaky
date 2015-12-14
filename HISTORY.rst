@@ -6,6 +6,13 @@ Release History
 Upcoming
 ++++++++
 
+3.0.0 (2015-12-14)
+
+- Flaky for pytest now reruns test setup and teardown. **This is a possibly breaking change.**
+
+**Bugfixes**
+- Bug with nose and multiprocess fixed.
+
 2.4.0 (2015-10-27)
 ++++++++++++++++++
 

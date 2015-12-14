@@ -110,7 +110,7 @@ class FlakyPlugin(_FlakyPlugin, Plugin):
             test.run(self._flaky_result)
         self._test_status.pop(test, None)
 
-    def _rerun_test(self, test):
+    def _mark_test_for_rerun(self, test):
         """
         Base class override. Rerun a flaky test.
 
@@ -186,6 +186,7 @@ class FlakyPlugin(_FlakyPlugin, Plugin):
         Returning True from this method keeps the test runner from reporting
         the test as a success; this way we can retry and only report as a
         success if we have achieved the required number of successes.
+
         :param test:
             The test that has succeeded
         :type test:
@@ -201,6 +202,7 @@ class FlakyPlugin(_FlakyPlugin, Plugin):
     def report(self, stream):
         """
         Baseclass override. Write details about flaky tests to the test report.
+
         :param stream:
             The test stream to which the report can be written.
         :type stream:
@@ -230,6 +232,7 @@ class FlakyPlugin(_FlakyPlugin, Plugin):
 
         If the test class is marked flaky and the test callable is not, copy
         the flaky attributes from the test class to the test callable.
+
         :param test:
             The test that is being prepared to run
         :type test:
@@ -247,6 +250,7 @@ class FlakyPlugin(_FlakyPlugin, Plugin):
     def _get_test_callable_name(test):
         """
         Get the name of the test callable from the test.
+
         :param test:
             The test that has raised an error or succeeded
         :type test:

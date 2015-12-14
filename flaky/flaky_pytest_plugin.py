@@ -38,14 +38,22 @@ class FlakyPlugin(_FlakyPlugin):
     min_passes = None
     config = None
     _call_infos = {}
+    _PYTEST_WHEN_CALL = 'call'
+    _PYTEST_OUTCOME_PASSED = 'passed'
+    _PYTEST_OUTCOME_FAILED = 'failed'
+    _PYTEST_EMPTY_STATUS = ('', '', '')
 
     def pytest_runtest_protocol(self, item, nextitem):
         """
         Pytest hook to override how tests are run.
 
-        Runs a test collected by py.test. First, monkey patches the builtin
-        runner module to call back to FlakyPlugin.call_runtest_hook rather
-        than its own. Then defer to the builtin runner module to run the test.
+        Runs a test collected by py.test.
+        - First, monkey patches the builtin runner module to call back to
+        FlakyPlugin.call_runtest_hook rather than its own.
+        - Then defers to the builtin runner module to run the test,
+        and repeats the process if the test needs to be rerun.
+        - Reports test results to the flaky report.
+
         :param item:
             py.test wrapper for the test function to be run
         :type item:
@@ -54,6 +62,10 @@ class FlakyPlugin(_FlakyPlugin):
             py.test wrapper for the next test function to be run
         :type nextitem:
             :class:`Function`
+        :return:
+            True if no further hook implementations should be invoked.
+        :rtype:
+            `bool` or None
         """
         test_instance = self._get_test_instance(item)
         self._copy_flaky_attributes(item, test_instance)
@@ -63,17 +75,17 @@ class FlakyPlugin(_FlakyPlugin):
                 self.max_runs,
                 self.min_passes,
             )
-        patched_call_runtest_hook = self.runner.call_runtest_hook
+        original_call_runtest_hook = self.runner.call_runtest_hook
         self._call_infos = {}
         should_rerun = True
         try:
             self.runner.call_runtest_hook = self.call_runtest_hook
             while should_rerun:
                 self.runner.pytest_runtest_protocol(item, nextitem)
-                call_info = self._call_infos.get('call', None)
+                call_info = self._call_infos.get(self._PYTEST_WHEN_CALL, None)
                 if call_info is None:
                     return
-                run = self._call_infos['call']
+                run = self._call_infos[self._PYTEST_WHEN_CALL]
                 passed = run.excinfo is None
                 if passed:
                     should_rerun = self.add_success(item)
@@ -82,7 +94,7 @@ class FlakyPlugin(_FlakyPlugin):
                     if not should_rerun:
                         item.excinfo = run.excinfo
         finally:
-            self.runner.call_runtest_hook = patched_call_runtest_hook
+            self.runner.call_runtest_hook = original_call_runtest_hook
             del self._call_infos
         return True
 
@@ -95,13 +107,13 @@ class FlakyPlugin(_FlakyPlugin):
         That way, pytest will not mark the run as failed.
         """
         outcome = yield
-        if call.when == 'call':
+        if call.when == self._PYTEST_WHEN_CALL:
             report = outcome.get_result()
             report.item = item
             report.original_outcome = report.outcome
             if report.failed:
-                if self._should_handle_test_error_or_failure(item, None, None)[1]:
-                    report.outcome = 'passed'
+                if self._will_handle_test_error_or_failure(item, None, None):
+                    report.outcome = self._PYTEST_OUTCOME_PASSED
 
     @pytest.hookimpl(tryfirst=True, hookwrapper=True)
     def pytest_report_teststatus(self, report):
@@ -113,14 +125,14 @@ class FlakyPlugin(_FlakyPlugin):
         so it isn't reported; otherwise, don't change the status.
         """
         outcome = yield
-        if report.when == 'call':
+        if report.when == self._PYTEST_WHEN_CALL:
             item = report.item
-            if report.original_outcome == 'passed':
+            if report.original_outcome == self._PYTEST_OUTCOME_PASSED:
                 if self._should_handle_test_success(item):
-                    outcome.force_result(('', '', ''))
-            elif report.original_outcome == 'failed':
-                if self._should_handle_test_error_or_failure(item, None, None)[1]:
-                    outcome.force_result(('', '', ''))
+                    outcome.force_result(self._PYTEST_EMPTY_STATUS)
+            elif report.original_outcome == self._PYTEST_OUTCOME_FAILED:
+                if self._will_handle_test_error_or_failure(item, None, None):
+                    outcome.force_result(self._PYTEST_EMPTY_STATUS)
             delattr(report, 'item')
 
     def pytest_terminal_summary(self, terminalreporter):
@@ -140,6 +152,7 @@ class FlakyPlugin(_FlakyPlugin):
     def pytest_addoption(self, parser):
         """
         Pytest hook to add an option to the argument parser.
+
         :param parser:
             Parser for command line arguments and ini-file values.
         :type parser:
@@ -154,6 +167,7 @@ class FlakyPlugin(_FlakyPlugin):
     def pytest_configure(self, config):
         """
         Pytest hook to get information about how the test run has been configured.
+
         :param config:
             The pytest configuration object for this test run.
         :type config:
@@ -226,6 +240,7 @@ class FlakyPlugin(_FlakyPlugin):
         Monkey patched from the runner plugin. Responsible for running
         the test. Had to be patched to pass additional info to the
         CallInfo so the tests can be rerun if necessary.
+
         :param item:
             py.test wrapper for the test function to be run
         :type item:
@@ -246,6 +261,7 @@ class FlakyPlugin(_FlakyPlugin):
 
         Count remaining retries and compare with number of required successes
         that have not yet been achieved; retry if necessary.
+
         :param item:
             py.test wrapper for the test function that has succeeded
         :type item:
@@ -259,6 +275,7 @@ class FlakyPlugin(_FlakyPlugin):
 
         Count remaining retries and compare with number of required successes
         that have not yet been achieved; retry if necessary.
+
         :param item:
             py.test wrapper for the test function that has succeeded
         :type item:
@@ -278,6 +295,7 @@ class FlakyPlugin(_FlakyPlugin):
     def _get_test_callable_name(test):
         """
         Get the name of the test callable from the test.
+
         :param test:
             The test that has raised an error or succeeded
         :type test:
@@ -331,11 +349,13 @@ class FlakyPlugin(_FlakyPlugin):
         else:
             return None, None, callable_name
 
-    def _rerun_test(self, test):
+    def _mark_test_for_rerun(self, test):
         """Base class override. Rerun a flaky test."""
 
 
 PLUGIN = FlakyPlugin()
+# pytest only processes hooks defined on the module
+# find all hooks defined on the plugin class and copy them to the module globals
 for _pytest_hook in dir(PLUGIN):
     if _pytest_hook.startswith('pytest_'):
         globals()[_pytest_hook] = getattr(PLUGIN, _pytest_hook)
