@@ -65,7 +65,7 @@ class FlakyPlugin(_FlakyPlugin):
         :return:
             True if no further hook implementations should be invoked.
         :rtype:
-            `bool` or None
+            `bool`
         """
         test_instance = self._get_test_instance(item)
         self._copy_flaky_attributes(item, test_instance)
@@ -84,7 +84,7 @@ class FlakyPlugin(_FlakyPlugin):
                 self.runner.pytest_runtest_protocol(item, nextitem)
                 call_info = self._call_infos.get(self._PYTEST_WHEN_CALL, None)
                 if call_info is None:
-                    return
+                    return False
                 run = self._call_infos[self._PYTEST_WHEN_CALL]
                 passed = run.excinfo is None
                 if passed:

@@ -23,6 +23,11 @@ class _FlakyPlugin(object):
         Returns the stream used for building the flaky report.
         Anything written to this stream before the end of the test run
         will be written to the flaky report.
+
+        :return:
+            The stream used for building the flaky report.
+        :rtype:
+            :class:`StringIO`
         """
         return self._stream
 
@@ -119,9 +124,7 @@ class _FlakyPlugin(object):
         flaky_attributes = self._get_flaky_attributes(test)
         flaky_attributes[FlakyNames.CURRENT_RUNS] += 1
         has_failed = self._has_flaky_test_failed(flaky_attributes)
-        if not has_failed:
-            return True
-        return False
+        return not has_failed
 
     def _will_handle_test_error_or_failure(self, test, name, err):
         """
@@ -140,7 +143,7 @@ class _FlakyPlugin(object):
         :param err:
             Information about the test failure (from sys.exc_info())
         :type err:
-            `tuple` of `class`, :class:`Exception`, `traceback`
+            `tuple` of `type`, :class:`Exception`, `traceback`
         :return:
             True, if the test will be rerun by flaky; False, otherwise.
         :rtype:
@@ -165,7 +168,7 @@ class _FlakyPlugin(object):
         :param err:
             Information about the test failure (from sys.exc_info())
         :type err:
-            `tuple` of `class`, :class:`Exception`, `traceback`
+            `tuple` of `type`, :class:`Exception`, `traceback`
         :return:
             True, if the test will be rerun;
             False, if the test runner should handle it.
@@ -182,17 +185,17 @@ class _FlakyPlugin(object):
             should_handle = self._should_handle_test_error_or_failure(test)
             self._increment_flaky_attribute(test, FlakyNames.CURRENT_RUNS)
             if should_handle:
-                flaky = self._get_flaky_attributes(test)
+                flaky_attributes = self._get_flaky_attributes(test)
                 if self._should_rerun_test(test, name, err):
-                    self._log_intermediate_failure(err, flaky, name)
+                    self._log_intermediate_failure(err, flaky_attributes, name)
                     self._mark_test_for_rerun(test)
                     return True
                 else:
                     self._log_test_failure(name, err, self._not_rerun_message)
                     return False
             else:
-                flaky = self._get_flaky_attributes(test)
-                self._report_final_failure(err, flaky, name)
+                flaky_attributes = self._get_flaky_attributes(test)
+                self._report_final_failure(err, flaky_attributes, name)
         return False
 
     def _should_rerun_test(self, test, name, err):
