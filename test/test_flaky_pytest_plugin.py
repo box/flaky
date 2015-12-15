@@ -45,7 +45,7 @@ def mock_plugin_rerun(monkeypatch, flaky_plugin):
 
     def rerun_test(test):
         calls.append(test)
-    monkeypatch.setattr(flaky_plugin, '_rerun_test', rerun_test)
+    monkeypatch.setattr(flaky_plugin, '_mark_test_for_rerun', rerun_test)
 
     def get_calls():
         return calls

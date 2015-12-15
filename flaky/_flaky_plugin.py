@@ -25,7 +25,9 @@ class _FlakyPlugin(object):
         will be written to the flaky report.
 
         :return:
+            The stream used for building the flaky report.
         :rtype:
+            :class:`StringIO`
         """
         return self._stream
 
@@ -100,25 +102,65 @@ class _FlakyPlugin(object):
         )
         self._log_test_failure(name, err, message)
 
-    def _should_handle_test_error_or_failure(self, test, name, err):
+    def _should_handle_test_error_or_failure(self, test):
+        """
+        Whether or not flaky should handle a test error or failure.
+        Only handle tests marked @flaky.
+        Count remaining retries and compare with number of required successes that have not yet been achieved.
+
+        This method may be called multiple times for the same test run, so it has no side effects.
+
+        :param test:
+            The test that has raised an error
+        :type test:
+            :class:`nose.case.Test` or :class:`Function`
+        :return:
+            True, if the test needs to be rerun; False, otherwise.
+        :rtype:
+            `bool`
+        """
         if not self._has_flaky_attributes(test):
-            return False, False
-        flaky = self._get_flaky_attributes(test)
-        flaky[FlakyNames.CURRENT_RUNS] += 1
-        has_failed = self._has_flaky_test_failed(flaky)
-        if not has_failed:
-            return True, self._should_rerun_test(test, name, err)
-        return False, False
+            return False
+        flaky_attributes = self._get_flaky_attributes(test)
+        flaky_attributes[FlakyNames.CURRENT_RUNS] += 1
+        has_failed = self._has_flaky_test_failed(flaky_attributes)
+        return not has_failed
+
+    def _will_handle_test_error_or_failure(self, test, name, err):
+        """
+        Whether or not flaky will handle a test error or failure.
+        Returns True if the plugin should handle the test result, and
+        the `rerun_filter` returns True.
+
+        :param test:
+            The test that has raised an error
+        :type test:
+            :class:`nose.case.Test` or :class:`Function`
+        :param name:
+            The name of the test that has raised an error
+        :type name:
+            `unicode`
+        :param err:
+            Information about the test failure (from sys.exc_info())
+        :type err:
+            `tuple` of `type`, :class:`Exception`, `traceback`
+        :return:
+            True, if the test will be rerun by flaky; False, otherwise.
+        :rtype:
+            `bool`
+        """
+        return self._should_handle_test_error_or_failure(test) and self._should_rerun_test(test, name, err)
 
     def _handle_test_error_or_failure(self, test, err):
         """
         Handle a flaky test error or failure.
-        Count remaining retries and compare with number of required successes
-        that have not yet been achieved; retry if necessary.
 
         Returning True from this method keeps the test runner from reporting
         the test as a failure; this way we can retry and only report as a
         failure if we are out of retries.
+
+        This method may only be called once per test run; it changes persisted flaky attributes.
+
         :param test:
             The test that has raised an error
         :type test:
@@ -126,7 +168,7 @@ class _FlakyPlugin(object):
         :param err:
             Information about the test failure (from sys.exc_info())
         :type err:
-            `tuple` of `class`, :class:`Exception`, `traceback`
+            `tuple` of `type`, :class:`Exception`, `traceback`
         :return:
             True, if the test will be rerun;
             False, if the test runner should handle it.
@@ -138,29 +180,22 @@ class _FlakyPlugin(object):
         except AttributeError:
             return False
 
-        need_reruns, should_rerun = self._should_handle_test_error_or_failure(
-            test,
-            name,
-            err,
-        )
-
         if self._has_flaky_attributes(test):
             self._add_flaky_test_failure(test, err)
-            flaky = self._get_flaky_attributes(test)
-            runs = flaky[FlakyNames.CURRENT_RUNS] + 1
-            self._set_flaky_attribute(test, FlakyNames.CURRENT_RUNS, runs)
-            if need_reruns:
-                flaky = self._get_flaky_attributes(test)
-                if should_rerun:
-                    self._log_intermediate_failure(err, flaky, name)
-                    self._rerun_test(test)
+            should_handle = self._should_handle_test_error_or_failure(test)
+            self._increment_flaky_attribute(test, FlakyNames.CURRENT_RUNS)
+            if should_handle:
+                flaky_attributes = self._get_flaky_attributes(test)
+                if self._should_rerun_test(test, name, err):
+                    self._log_intermediate_failure(err, flaky_attributes, name)
+                    self._mark_test_for_rerun(test)
                     return True
                 else:
-                    message = self._not_rerun_message
-                    self._log_test_failure(name, err, message)
+                    self._log_test_failure(name, err, self._not_rerun_message)
                     return False
             else:
-                self._report_final_failure(err, flaky, name)
+                flaky_attributes = self._get_flaky_attributes(test)
+                self._report_final_failure(err, flaky_attributes, name)
         return False
 
     def _should_rerun_test(self, test, name, err):
@@ -192,13 +227,14 @@ class _FlakyPlugin(object):
         rerun_filter = self._get_flaky_attribute(test, FlakyNames.RERUN_FILTER)
         return rerun_filter(err, name, test, self)
 
-    def _rerun_test(self, test):
+    def _mark_test_for_rerun(self, test):
         """
-        Rerun a flaky test.
+        Mark a flaky test for rerun.
+
         :param test:
             The test that has raised an error or succeeded
         :type test:
-            :class:`Function`
+            :class:`nose.case.Test` or :class:`Function`
         """
         raise NotImplementedError  # pragma: no cover
 
@@ -219,12 +255,13 @@ class _FlakyPlugin(object):
         Returning True from this method keeps the test runner from reporting
         the test as a success; this way we can retry and only report as a
         success if the test has passed the required number of times.
+
         :param test:
             The test that has raised an error
         :type test:
-            :class:`nose.case.Test`
+            :class:`nose.case.Test` or :class:`Function`
         :return:
-            True, if the test will be rerun; False, if nose should handle it.
+            True, if the test will be rerun; False, if the test runner should handle it.
         :rtype:
             `bool`
         """
@@ -238,9 +275,8 @@ class _FlakyPlugin(object):
             flaky = self._get_flaky_attributes(test)
             min_passes = flaky[FlakyNames.MIN_PASSES]
             passes = flaky[FlakyNames.CURRENT_PASSES] + 1
-            runs = flaky[FlakyNames.CURRENT_RUNS] + 1
             self._set_flaky_attribute(test, FlakyNames.CURRENT_PASSES, passes)
-            self._set_flaky_attribute(test, FlakyNames.CURRENT_RUNS, runs)
+            self._increment_flaky_attribute(test, FlakyNames.CURRENT_RUNS)
 
             if self._flaky_success_report:
                 self._stream.writelines([
@@ -260,13 +296,14 @@ class _FlakyPlugin(object):
                     self._stream.write('Success!\n')
 
         if need_reruns:
-            self._rerun_test(test)
+            self._mark_test_for_rerun(test)
         return need_reruns
 
     @staticmethod
     def add_report_option(add_option):
         """
         Add an option to the test runner to suppress the flaky report.
+
         :param add_option:
             A function that can add an option to the test runner.
             Its argspec should equal that of argparse.add_option.
@@ -295,6 +332,7 @@ class _FlakyPlugin(object):
     def add_force_flaky_options(add_option):
         """
         Add options to the test runner that force all tests to be flaky.
+
         :param add_option:
             A function that can add an option to the test runner.
             Its argspec should equal that of argparse.add_option.
@@ -333,6 +371,7 @@ class _FlakyPlugin(object):
     def _add_flaky_report(self, stream):
         """
         Baseclass override. Write details about flaky tests to the test report.
+
         :param stream:
             The test stream to which the report can be written.
         :type stream:
@@ -356,6 +395,7 @@ class _FlakyPlugin(object):
     def _copy_flaky_attributes(cls, test, test_class):
         """
         Copy flaky attributes from the test callable or class to the test.
+
         :param test:
             The test that is being prepared to run
         :type test:
@@ -376,6 +416,7 @@ class _FlakyPlugin(object):
     def _get_flaky_attribute(test_item, flaky_attribute):
         """
         Gets an attribute describing the flaky test.
+
         :param test_item:
             The test method from which to get the attribute
         :type test_item:
@@ -390,17 +431,14 @@ class _FlakyPlugin(object):
         :rtype:
             varies
         """
-        return getattr(
-            test_item,
-            flaky_attribute,
-            None,
-        )
+        return getattr(test_item, flaky_attribute, None)
 
     @staticmethod
     def _set_flaky_attribute(test_item, flaky_attribute, value):
         """
         Sets an attribute on a flaky test. Uses magic __dict__ since setattr
         doesn't work for bound methods.
+
         :param test_item:
             The test callable on which to set the attribute
         :type test_item:
@@ -417,9 +455,26 @@ class _FlakyPlugin(object):
         test_item.__dict__[flaky_attribute] = value
 
     @classmethod
+    def _increment_flaky_attribute(cls, test_item, flaky_attribute):
+        """
+        Increments the value of an attribute on a flaky test.
+
+        :param test_item:
+            The test callable on which to set the attribute
+        :type test_item:
+            `callable` or :class:`nose.case.Test` or :class:`Function`
+        :param flaky_attribute:
+            The name of the attribute to set
+        :type flaky_attribute:
+            `unicode`
+        """
+        cls._set_flaky_attribute(test_item, flaky_attribute, cls._get_flaky_attribute(test_item, flaky_attribute) + 1)
+
+    @classmethod
     def _has_flaky_attributes(cls, test):
         """
         Returns True if the test callable in question is marked as flaky.
+
         :param test:
             The test that is being prepared to run
         :type test:
@@ -428,16 +483,14 @@ class _FlakyPlugin(object):
         :rtype:
             `bool`
         """
-        current_runs = cls._get_flaky_attribute(
-            test,
-            FlakyNames.CURRENT_RUNS,
-        )
+        current_runs = cls._get_flaky_attribute(test, FlakyNames.CURRENT_RUNS)
         return current_runs is not None
 
     @classmethod
     def _get_flaky_attributes(cls, test_item):
         """
         Get all the flaky related attributes from the test.
+
         :param test_item:
             The test callable from which to get the flaky related attributes.
         :type test_item:
@@ -457,6 +510,7 @@ class _FlakyPlugin(object):
     def _add_flaky_test_failure(cls, test, err):
         """
         Store test error information on the test callable.
+
         :param test:
             The flaky test on which to update the flaky attributes.
         :type test:
@@ -467,17 +521,14 @@ class _FlakyPlugin(object):
             `tuple` of `class`, :class:`Exception`, `traceback`
         """
         errs = getattr(test, FlakyNames.CURRENT_ERRORS, None) or []
-        cls._set_flaky_attribute(
-            test,
-            FlakyNames.CURRENT_ERRORS,
-            errs,
-        )
+        cls._set_flaky_attribute(test, FlakyNames.CURRENT_ERRORS, errs)
         errs.append(err)
 
     @classmethod
     def _has_flaky_test_failed(cls, flaky):
         """
         Whether or not the flaky test has failed
+
         :param flaky:
             Dictionary of flaky attributes
         :type flaky:
@@ -503,6 +554,7 @@ class _FlakyPlugin(object):
     def _has_flaky_test_succeeded(flaky):
         """
         Whether or not the flaky test has succeeded
+
         :param flaky:
             Dictionary of flaky attributes
         :type flaky:
@@ -520,6 +572,7 @@ class _FlakyPlugin(object):
         """
         Get the test declaration, the test callable,
         and test callable name from the test.
+
         :param test:
             The test that has raised an error or succeeded
         :type test:
@@ -535,6 +588,7 @@ class _FlakyPlugin(object):
     def _make_test_flaky(cls, test, max_runs, min_passes):
         """
         Make a given test flaky.
+
         :param test:
             The test in question.
         :type test:

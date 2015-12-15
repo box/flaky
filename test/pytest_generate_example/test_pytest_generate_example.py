@@ -6,7 +6,6 @@ from flaky import flaky
 
 @flaky
 def test_something_flaky(dummy_list):
-    # pylint:disable=dangerous-default-value
     dummy_list.append(0)
     assert len(dummy_list) > 1
 
@@ -14,9 +13,8 @@ def test_something_flaky(dummy_list):
 class TestExample(object):
     _threshold = -1
 
-    @staticmethod
     @flaky
-    def test_flaky_thing_that_fails_then_succeeds(dummy_list):
-        # pylint:disable=unused-argument
+    def test_flaky_thing_that_fails_then_succeeds(self, dummy_list):
+        # pylint:disable=unused-argument,no-self-use
         TestExample._threshold += 1
         assert TestExample._threshold >= 1

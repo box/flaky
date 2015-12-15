@@ -27,6 +27,7 @@ class FilterWrapper(object):
 def default_flaky_attributes(max_runs, min_passes, rerun_filter=None):
     """
     Returns the default flaky attributes to set on a flaky test.
+
     :param max_runs:
         The value of the FlakyNames.MAX_RUNS attribute to use.
     :type max_runs:
