@@ -2,8 +2,10 @@
 
 from __future__ import unicode_literals
 
-from genty import genty, genty_dataset
 import sys
+
+from genty import genty, genty_dataset
+
 from flaky.utils import ensure_unicode_string, unicode_type
 from test.test_case_base import TestCase
 
