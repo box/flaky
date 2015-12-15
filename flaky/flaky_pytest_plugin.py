@@ -1,81 +1,29 @@
 # coding: utf-8
 
 from __future__ import unicode_literals
-import py
+import pytest
 
 # pylint:disable=import-error
-from _pytest.runner import CallInfo, Skipped
+from _pytest.runner import CallInfo
 # pylint:enable=import-error
 
 from flaky._flaky_plugin import _FlakyPlugin
 
 
-def pytest_runtest_protocol(item, nextitem):
-    """
-    Pytest hook to override how tests are run.
-    """
-    PLUGIN.run_test(item, nextitem)
-    return True
-
-
-def pytest_terminal_summary(terminalreporter):
-    """
-    Pytest hook to write details about flaky tests to the test report.
-    :param terminalreporter:
-        Terminal reporter object. Supports stream writing operations.
-    :type terminalreporter:
-        :class: `TerminalReporter`
-    """
-    PLUGIN.terminal_summary(terminalreporter)
-
-
-def pytest_addoption(parser):
-    """
-    Pytest hook to add an option to the argument parser.
-    :param parser:
-        Parser for command line arguments and ini-file values.
-    :type parser:
-        :class:`Parser`
-    """
-    PLUGIN.add_report_option(parser.addoption)
-
-    group = parser.getgroup(
-        "Force flaky", "Force all tests to be flaky.")
-    PLUGIN.add_force_flaky_options(group.addoption)
-
-
 class FlakyXdist(object):
 
+    def __init__(self, plugin):
+        super(FlakyXdist, self).__init__()
+        self._plugin = plugin
+
     def pytest_testnodedown(self, node, error):
+        """
+        Pytest hook for responding to a test node shutting down.
+        Copy slave flaky report output so it's available on the master flaky report.
+        """
         # pylint: disable=unused-argument, no-self-use
         if hasattr(node, 'slaveoutput') and 'flaky_report' in node.slaveoutput:
-            PLUGIN.stream.write(node.slaveoutput['flaky_report'])
-
-
-def pytest_configure(config):
-    """
-    Pytest hook to get information about how the test run has been configured.
-    :param config:
-        The pytest configuration object for this test run.
-    :type config:
-        :class:`Configuration`
-    """
-    PLUGIN.flaky_report = config.option.flaky_report
-    PLUGIN.flaky_success_report = config.option.flaky_success_report
-    PLUGIN.force_flaky = config.option.force_flaky
-    PLUGIN.max_runs = config.option.max_runs
-    PLUGIN.min_passes = config.option.min_passes
-    PLUGIN.runner = config.pluginmanager.getplugin("runner")
-    if config.pluginmanager.hasplugin('xdist'):
-        config.pluginmanager.register(FlakyXdist())
-        PLUGIN.config = config
-    if hasattr(config, 'slaveoutput'):
-        config.slaveoutput['flaky_report'] = ''
-
-
-def pytest_sessionfinish():
-    if hasattr(PLUGIN.config, 'slaveoutput'):
-        PLUGIN.config.slaveoutput['flaky_report'] += PLUGIN.stream.getvalue()
+            self._plugin.stream.write(node.slaveoutput['flaky_report'])
 
 
 class FlakyPlugin(_FlakyPlugin):
@@ -84,12 +32,152 @@ class FlakyPlugin(_FlakyPlugin):
 
     """
     runner = None
-    _info = None
     flaky_report = True
     force_flaky = False
     max_runs = None
     min_passes = None
     config = None
+    _call_infos = {}
+
+    def pytest_runtest_protocol(self, item, nextitem):
+        """
+        Pytest hook to override how tests are run.
+
+        Runs a test collected by py.test. First, monkey patches the builtin
+        runner module to call back to FlakyPlugin.call_runtest_hook rather
+        than its own. Then defer to the builtin runner module to run the test.
+        :param item:
+            py.test wrapper for the test function to be run
+        :type item:
+            :class:`Function`
+        :param nextitem:
+            py.test wrapper for the next test function to be run
+        :type nextitem:
+            :class:`Function`
+        """
+        test_instance = self._get_test_instance(item)
+        self._copy_flaky_attributes(item, test_instance)
+        if self.force_flaky and not self._has_flaky_attributes(item):
+            self._make_test_flaky(
+                item,
+                self.max_runs,
+                self.min_passes,
+            )
+        patched_call_runtest_hook = self.runner.call_runtest_hook
+        self._call_infos = {}
+        should_rerun = True
+        try:
+            self.runner.call_runtest_hook = self.call_runtest_hook
+            while should_rerun:
+                self.runner.pytest_runtest_protocol(item, nextitem)
+                call_info = self._call_infos.get('call', None)
+                if call_info is None:
+                    return
+                run = self._call_infos['call']
+                passed = run.excinfo is None
+                if passed:
+                    should_rerun = self.add_success(item)
+                else:
+                    should_rerun = self.add_failure(item, run.excinfo)
+                    if not should_rerun:
+                        item.excinfo = run.excinfo
+        finally:
+            self.runner.call_runtest_hook = patched_call_runtest_hook
+            del self._call_infos
+        return True
+
+    @pytest.hookimpl(tryfirst=True, hookwrapper=True)
+    def pytest_runtest_makereport(self, item, call):
+        """
+        Pytest hook to intercept the report for reruns.
+
+        Change the report's outcome to 'passed' if flaky is going to handle the test run.
+        That way, pytest will not mark the run as failed.
+        """
+        outcome = yield
+        if call.when == 'call':
+            report = outcome.get_result()
+            report.item = item
+            report.original_outcome = report.outcome
+            if report.failed:
+                if self._should_handle_test_error_or_failure(item, None, None)[1]:
+                    report.outcome = 'passed'
+
+    @pytest.hookimpl(tryfirst=True, hookwrapper=True)
+    def pytest_report_teststatus(self, report):
+        """
+        Pytest hook to only add final runs to the report.
+
+        Given a test report, get the correpsonding test status.
+        For tests that flaky is handling, return the empty status
+        so it isn't reported; otherwise, don't change the status.
+        """
+        outcome = yield
+        if report.when == 'call':
+            item = report.item
+            if report.original_outcome == 'passed':
+                if self._should_handle_test_success(item):
+                    outcome.force_result(('', '', ''))
+            elif report.original_outcome == 'failed':
+                if self._should_handle_test_error_or_failure(item, None, None)[1]:
+                    outcome.force_result(('', '', ''))
+            delattr(report, 'item')
+
+    def pytest_terminal_summary(self, terminalreporter):
+        """
+        Pytest hook to write details about flaky tests to the test report.
+
+        Write details about flaky tests to the test report.
+
+        :param terminalreporter:
+            Terminal reporter object. Supports stream writing operations.
+        :type terminalreporter:
+            :class: `TerminalReporter`
+        """
+        if self.flaky_report:
+            self._add_flaky_report(terminalreporter)
+
+    def pytest_addoption(self, parser):
+        """
+        Pytest hook to add an option to the argument parser.
+        :param parser:
+            Parser for command line arguments and ini-file values.
+        :type parser:
+            :class:`Parser`
+        """
+        self.add_report_option(parser.addoption)
+
+        group = parser.getgroup(
+            "Force flaky", "Force all tests to be flaky.")
+        self.add_force_flaky_options(group.addoption)
+
+    def pytest_configure(self, config):
+        """
+        Pytest hook to get information about how the test run has been configured.
+        :param config:
+            The pytest configuration object for this test run.
+        :type config:
+            :class:`Configuration`
+        """
+        self.flaky_report = config.option.flaky_report
+        self.flaky_success_report = config.option.flaky_success_report
+        self.force_flaky = config.option.force_flaky
+        self.max_runs = config.option.max_runs
+        self.min_passes = config.option.min_passes
+        self.runner = config.pluginmanager.getplugin("runner")
+        if config.pluginmanager.hasplugin('xdist'):
+            config.pluginmanager.register(FlakyXdist(self))
+            self.config = config
+        if hasattr(config, 'slaveoutput'):
+            config.slaveoutput['flaky_report'] = ''
+
+    def pytest_sessionfinish(self):
+        """
+        Pytest hook to take a final action after the session is complete.
+        Copy flaky report contents so that the master process can read it.
+        """
+        if hasattr(self.config, 'slaveoutput'):
+            self.config.slaveoutput['flaky_report'] += self.stream.getvalue()
 
     @property
     def stream(self):
@@ -133,35 +221,6 @@ class FlakyPlugin(_FlakyPlugin):
                 test_instance = item.parent.obj
         return test_instance
 
-    def run_test(self, item, nextitem):
-        """
-        Runs a test collected by py.test. First, monkey patches the builtin
-        runner module to call back to FlakyPlugin.call_runtest_hook rather
-        than its own. Then defer to the builtin runner module to run the test.
-        :param item:
-            py.test wrapper for the test function to be run
-        :type item:
-            :class:`Function`
-        :param nextitem:
-            py.test wrapper for the next test function to be run
-        :type nextitem:
-            :class:`Function`
-        """
-        test_instance = self._get_test_instance(item)
-        self._copy_flaky_attributes(item, test_instance)
-        if self.force_flaky and not self._has_flaky_attributes(item):
-            self._make_test_flaky(
-                item,
-                self.max_runs,
-                self.min_passes,
-            )
-        patched_call_runtest_hook = self.runner.call_runtest_hook
-        try:
-            self.runner.call_runtest_hook = self.call_runtest_hook
-            self.runner.pytest_runtest_protocol(item, nextitem)
-        finally:
-            self.runner.call_runtest_hook = patched_call_runtest_hook
-
     def call_runtest_hook(self, item, when, **kwds):
         """
         Monkey patched from the runner plugin. Responsible for running
@@ -174,41 +233,32 @@ class FlakyPlugin(_FlakyPlugin):
         """
         hookname = "pytest_runtest_" + when
         ihook = getattr(item.ihook, hookname)
-        return FlakyCallInfo(
-            self,
-            item,
+        call_info = CallInfo(
             lambda: ihook(item=item, **kwds),
-            when=when
+            when=when,
         )
+        self._call_infos[when] = call_info
+        return call_info
 
-    def add_success(self, info, item):
+    def add_success(self, item):
         """
         Called when a test succeeds.
 
         Count remaining retries and compare with number of required successes
         that have not yet been achieved; retry if necessary.
-        :param info:
-            Information about the test call.
-        :type info:
-            :class: `FlakyCallInfo`
         :param item:
             py.test wrapper for the test function that has succeeded
         :type item:
             :class:`Function`
         """
-        self._info = info
         return self._handle_test_success(item)
 
-    def add_failure(self, info, item, err):
+    def add_failure(self, item, err):
         """
         Called when a test fails.
 
         Count remaining retries and compare with number of required successes
         that have not yet been achieved; retry if necessary.
-        :param info:
-            Information about the test call.
-        :type info:
-            :class: `FlakyCallInfo`
         :param item:
             py.test wrapper for the test function that has succeeded
         :type item:
@@ -218,23 +268,11 @@ class FlakyPlugin(_FlakyPlugin):
         :type err:
             :class: `ExceptionInfo`
         """
-        self._info = info
         if err is not None:
             error = (err.type, err.value, err.traceback)
         else:
             error = (None, None, None)
         return self._handle_test_error_or_failure(item, error)
-
-    def terminal_summary(self, stream):
-        """
-        Write details about flaky tests to the test report.
-        :param stream:
-            The test stream to which the report can be written.
-        :type stream:
-            :class: `TerminalReporter`
-        """
-        if self.flaky_report:
-            self._add_flaky_report(stream)
 
     @staticmethod
     def _get_test_callable_name(test):
@@ -295,93 +333,9 @@ class FlakyPlugin(_FlakyPlugin):
 
     def _rerun_test(self, test):
         """Base class override. Rerun a flaky test."""
-        self._info.call(test.runtest, self)
-
-
-class FlakyCallInfo(CallInfo):
-    """
-    Subclass of pytest default runner's CallInfo.
-    This subclass has an extracted call method to support
-    calling the test function again in the case of a rerun.
-    """
-    excinfo = None
-    result = None
-
-    def __init__(self, plugin, item, func, when):
-        # pylint:disable=super-init-not-called
-        #: context of invocation: one of "setup", "call",
-        #: "teardown", "memocollect"
-        self._item = item
-        self._want_rerun = []
-        self.excinfo = None
-        from functools import partial
-        CallInfo.__init__(self, partial(self.call, func, plugin), when)
-
-    def _handle_error(self, plugin):
-        """
-        Handle an error that occurs during test execution.
-        If the test is marked flaky and there are reruns remaining,
-        don't report the test as failed.
-        """
-        # pylint:disable=no-member
-        err = self.excinfo or py.code.ExceptionInfo()
-        # pylint:enable=no-member
-        self.excinfo = None
-        self._want_rerun.append(plugin.add_failure(
-            self,
-            self._item,
-            err,
-        ))
-        self.excinfo = None if self._want_rerun[0] else err
-
-    def call(self, func, plugin):
-        """
-        Call the test function, handling success or failure.
-        :param func:
-            The test function to run.
-        :type func:
-            `callable`
-        :param plugin:
-            Plugin class for flaky that can handle test success or failure.
-        :type plugin:
-            :class: `FlakyPlugin`
-        """
-        is_call = self.when == 'call'
-        try:
-            self.result = func()
-            # pytest's unittest plugin for some reason doesn't actually raise
-            # errors. It just adds them to the unittest result. In order to
-            # determine whether or not the test needs to be rerun, this
-            # code looks for the _excinfo attribute set by the plugin.
-            excinfo = getattr(self._item, '_excinfo', None)
-            if isinstance(excinfo, list) and len(excinfo) > 0:
-                self.excinfo = excinfo.pop(0)
-        except KeyboardInterrupt:
-            raise
-        except Skipped:
-            # pylint:disable=no-member
-            err = py.code.ExceptionInfo()
-            # pylint:enable=no-member
-            self.excinfo = err
-            return
-        # pylint:disable=bare-except
-        except:
-            if is_call:
-                self._handle_error(plugin)
-            else:
-                raise
-        else:
-            if is_call:
-                if self.excinfo is not None:
-                    if self.excinfo.typename != 'Skipped':
-                        self._handle_error(plugin)
-                else:
-                    handled_success = plugin.add_success(
-                        self,
-                        self._item,
-                    )
-                    if not handled_success:
-                        self.excinfo = None
 
 
 PLUGIN = FlakyPlugin()
+for _pytest_hook in dir(PLUGIN):
+    if _pytest_hook.startswith('pytest_'):
+        globals()[_pytest_hook] = getattr(PLUGIN, _pytest_hook)

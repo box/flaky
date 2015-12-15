@@ -100,6 +100,16 @@ class _FlakyPlugin(object):
         )
         self._log_test_failure(name, err, message)
 
+    def _should_handle_test_error_or_failure(self, test, name, err):
+        if not self._has_flaky_attributes(test):
+            return False, False
+        flaky = self._get_flaky_attributes(test)
+        flaky[FlakyNames.CURRENT_RUNS] += 1
+        has_failed = self._has_flaky_test_failed(flaky)
+        if not has_failed:
+            return True, self._should_rerun_test(test, name, err)
+        return False, False
+
     def _handle_test_error_or_failure(self, test, err):
         """
         Handle a flaky test error or failure.
@@ -127,33 +137,31 @@ class _FlakyPlugin(object):
             _, _, name = self._get_test_declaration_callable_and_name(test)
         except AttributeError:
             return False
-        current_runs = self._get_flaky_attribute(
-            test,
-            FlakyNames.CURRENT_RUNS,
-        )
-        if current_runs is None:
-            return False
-        current_runs += 1
-        self._set_flaky_attribute(
-            test,
-            FlakyNames.CURRENT_RUNS,
-            current_runs,
-        )
-        self._add_flaky_test_failure(test, err)
-        flaky = self._get_flaky_attributes(test)
 
-        if not self._has_flaky_test_failed(flaky):
-            if self._should_rerun_test(test, name, err):
-                self._log_intermediate_failure(err, flaky, name)
-                self._rerun_test(test)
-                return True
+        need_reruns, should_rerun = self._should_handle_test_error_or_failure(
+            test,
+            name,
+            err,
+        )
+
+        if self._has_flaky_attributes(test):
+            self._add_flaky_test_failure(test, err)
+            flaky = self._get_flaky_attributes(test)
+            runs = flaky[FlakyNames.CURRENT_RUNS] + 1
+            self._set_flaky_attribute(test, FlakyNames.CURRENT_RUNS, runs)
+            if need_reruns:
+                flaky = self._get_flaky_attributes(test)
+                if should_rerun:
+                    self._log_intermediate_failure(err, flaky, name)
+                    self._rerun_test(test)
+                    return True
+                else:
+                    message = self._not_rerun_message
+                    self._log_test_failure(name, err, message)
+                    return False
             else:
-                message = self._not_rerun_message
-                self._log_test_failure(name, err, message)
-                return False
-        else:
-            self._report_final_failure(err, flaky, name)
-            return False
+                self._report_final_failure(err, flaky, name)
+        return False
 
     def _should_rerun_test(self, test, name, err):
         """
@@ -194,6 +202,14 @@ class _FlakyPlugin(object):
         """
         raise NotImplementedError  # pragma: no cover
 
+    def _should_handle_test_success(self, test):
+        if not self._has_flaky_attributes(test):
+            return False
+        flaky = self._get_flaky_attributes(test)
+        flaky[FlakyNames.CURRENT_PASSES] += 1
+        flaky[FlakyNames.CURRENT_RUNS] += 1
+        return not self._has_flaky_test_succeeded(flaky)
+
     def _handle_test_success(self, test):
         """
         Handle a flaky test success.
@@ -212,48 +228,37 @@ class _FlakyPlugin(object):
         :rtype:
             `bool`
         """
-        _, _, name = self._get_test_declaration_callable_and_name(test)
-        current_runs = self._get_flaky_attribute(
-            test,
-            FlakyNames.CURRENT_RUNS
-        )
-        if current_runs is None:
+        try:
+            _, _, name = self._get_test_declaration_callable_and_name(test)
+        except AttributeError:
             return False
-        current_runs += 1
-        current_passes = self._get_flaky_attribute(
-            test,
-            FlakyNames.CURRENT_PASSES
-        )
-        current_passes += 1
-        self._set_flaky_attribute(
-            test,
-            FlakyNames.CURRENT_RUNS,
-            current_runs
-        )
-        self._set_flaky_attribute(
-            test,
-            FlakyNames.CURRENT_PASSES,
-            current_passes
-        )
-        flaky = self._get_flaky_attributes(test)
-        need_reruns = not self._has_flaky_test_succeeded(flaky)
-        if self._flaky_success_report:
+        need_reruns = self._should_handle_test_success(test)
+
+        if self._has_flaky_attributes(test):
+            flaky = self._get_flaky_attributes(test)
             min_passes = flaky[FlakyNames.MIN_PASSES]
-            self._stream.writelines([
-                ensure_unicode_string(name),
-                ' passed {0} out of the required {1} times. '.format(
-                    current_passes,
-                    min_passes,
-                ),
-            ])
-            if need_reruns:
-                self._stream.write(
-                    'Running test again until it passes {0} times.\n'.format(
+            passes = flaky[FlakyNames.CURRENT_PASSES] + 1
+            runs = flaky[FlakyNames.CURRENT_RUNS] + 1
+            self._set_flaky_attribute(test, FlakyNames.CURRENT_PASSES, passes)
+            self._set_flaky_attribute(test, FlakyNames.CURRENT_RUNS, runs)
+
+            if self._flaky_success_report:
+                self._stream.writelines([
+                    ensure_unicode_string(name),
+                    ' passed {0} out of the required {1} times. '.format(
+                        passes,
                         min_passes,
+                    ),
+                ])
+                if need_reruns:
+                    self._stream.write(
+                        'Running test again until it passes {0} times.\n'.format(
+                            min_passes,
+                        )
                     )
-                )
-            else:
-                self._stream.write('Success!\n')
+                else:
+                    self._stream.write('Success!\n')
+
         if need_reruns:
             self._rerun_test(test)
         return need_reruns
