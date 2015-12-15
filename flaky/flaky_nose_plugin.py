@@ -1,12 +1,14 @@
 # coding: utf-8
 
 from __future__ import unicode_literals
+
 import logging
 from optparse import OptionGroup
+import os
+
 from nose.failure import Failure
 from nose.plugins import Plugin
 from nose.result import TextTestResult
-import os
 
 from flaky._flaky_plugin import _FlakyPlugin
 
@@ -69,7 +71,7 @@ class FlakyPlugin(_FlakyPlugin, Plugin):
         super(FlakyPlugin, self).configure(options, conf)
         if not self.enabled:
             return
-        is_multiprocess = getattr(options, 'multiprocess_workers', 0) > 0
+        is_multiprocess = int(getattr(options, 'multiprocess_workers', 0)) > 0
         self._stream = self._get_stream(is_multiprocess)
         self._flaky_result = TextTestResult(self._stream, [], 0)
         self._flaky_report = options.flaky_report
