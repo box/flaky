@@ -38,6 +38,7 @@ class TestExample(object):
         Flaky will run this test 3 times.
         It will fail once and then succeed twice.
         """
+        # pylint:disable=no-self-use
         TestExample._threshold += 1
         assert TestExample._threshold >= 1
 
@@ -47,6 +48,7 @@ class TestExample(object):
         Flaky will run this test 3 times.
         It will succeed once, fail once, and then succeed one more time.
         """
+        # pylint:disable=no-self-use
         TestExample._threshold += 1
         assert TestExample._threshold != 1
 

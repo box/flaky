@@ -15,6 +15,6 @@ class TestExample(object):
 
     @flaky
     def test_flaky_thing_that_fails_then_succeeds(self, dummy_list):
-        # pylint:disable=unused-argument
+        # pylint:disable=unused-argument,no-self-use
         TestExample._threshold += 1
         assert TestExample._threshold >= 1
