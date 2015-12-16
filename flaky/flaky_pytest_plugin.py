@@ -76,16 +76,15 @@ class FlakyPlugin(_FlakyPlugin):
                 self.min_passes,
             )
         original_call_runtest_hook = self.runner.call_runtest_hook
-        self._call_infos = {}
+        self._call_infos[item] = {}
         should_rerun = True
         try:
             self.runner.call_runtest_hook = self.call_runtest_hook
             while should_rerun:
                 self.runner.pytest_runtest_protocol(item, nextitem)
-                call_info = self._call_infos.get(self._PYTEST_WHEN_CALL, None)
-                if call_info is None:
+                run = self._call_infos.get(item, {}).get(self._PYTEST_WHEN_CALL, None)
+                if run is None:
                     return False
-                run = self._call_infos[self._PYTEST_WHEN_CALL]
                 passed = run.excinfo is None
                 if passed:
                     should_rerun = self.add_success(item)
@@ -95,7 +94,7 @@ class FlakyPlugin(_FlakyPlugin):
                         item.excinfo = run.excinfo
         finally:
             self.runner.call_runtest_hook = original_call_runtest_hook
-            del self._call_infos
+            del self._call_infos[item]
         return True
 
     @pytest.hookimpl(tryfirst=True, hookwrapper=True)
@@ -252,7 +251,7 @@ class FlakyPlugin(_FlakyPlugin):
             lambda: ihook(item=item, **kwds),
             when=when,
         )
-        self._call_infos[when] = call_info
+        self._call_infos[item][when] = call_info
         return call_info
 
     def add_success(self, item):

@@ -224,6 +224,7 @@ def test_flaky_plugin_raises_errors_in_fixture_setup(
     flaky()(flaky_test)
     flaky_test.ihook = Mock()
     flaky_test.ihook.pytest_runtest_setup = error_raising_setup_function
+    flaky_plugin._call_infos[flaky_test] = {}  # pylint:disable=protected-access
     call_info = flaky_plugin.call_runtest_hook(flaky_test, 'setup')
     assert flaky_test.ran_setup
     assert string_io.getvalue() == mock_io.getvalue()
