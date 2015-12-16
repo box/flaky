@@ -6,7 +6,14 @@ Release History
 Upcoming
 ++++++++
 
+3.0.1 (2015-12-16)
+++++++++++++++++++
+
+**Bugfixes**
+- Flaky for pytest no longer causes errors with the pytester plugin.
+
 3.0.0 (2015-12-14)
+++++++++++++++++++
 
 - Flaky for pytest now reruns test setup and teardown. **This is a possibly breaking change.**
 
