@@ -6,6 +6,10 @@ Release History
 Upcoming
 ++++++++
 
+**Bugfixes**
+- Flaky for pytest no longer passes None for the first 2 arguments to the optional ``rerun_filter``.
+
+
 3.0.1 (2015-12-16)
 ++++++++++++++++++
 

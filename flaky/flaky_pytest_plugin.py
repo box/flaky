@@ -82,16 +82,16 @@ class FlakyPlugin(_FlakyPlugin):
             self.runner.call_runtest_hook = self.call_runtest_hook
             while should_rerun:
                 self.runner.pytest_runtest_protocol(item, nextitem)
-                run = self._call_infos.get(item, {}).get(self._PYTEST_WHEN_CALL, None)
-                if run is None:
+                call_info = self._call_infos.get(item, {}).get(self._PYTEST_WHEN_CALL, None)
+                if call_info is None:
                     return False
-                passed = run.excinfo is None
+                passed = call_info.excinfo is None
                 if passed:
                     should_rerun = self.add_success(item)
                 else:
-                    should_rerun = self.add_failure(item, run.excinfo)
+                    should_rerun = self.add_failure(item, call_info.excinfo)
                     if not should_rerun:
-                        item.excinfo = run.excinfo
+                        item.excinfo = call_info.excinfo
         finally:
             self.runner.call_runtest_hook = original_call_runtest_hook
             del self._call_infos[item]
@@ -111,7 +111,13 @@ class FlakyPlugin(_FlakyPlugin):
             report.item = item
             report.original_outcome = report.outcome
             if report.failed:
-                if self._will_handle_test_error_or_failure(item, None, None):
+                _, _, name = self._get_test_declaration_callable_and_name(item)
+                call_info = self._call_infos.get(item, {}).get(self._PYTEST_WHEN_CALL, None)
+                if call_info is not None:
+                    err = (call_info.excinfo.type, call_info.excinfo.value, call_info.excinfo.tb)
+                else:
+                    err = (None, None, None)
+                if self._will_handle_test_error_or_failure(item, name, err):
                     report.outcome = self._PYTEST_OUTCOME_PASSED
 
     @pytest.hookimpl(tryfirst=True, hookwrapper=True)
@@ -130,7 +136,13 @@ class FlakyPlugin(_FlakyPlugin):
                 if self._should_handle_test_success(item):
                     outcome.force_result(self._PYTEST_EMPTY_STATUS)
             elif report.original_outcome == self._PYTEST_OUTCOME_FAILED:
-                if self._will_handle_test_error_or_failure(item, None, None):
+                _, _, name = self._get_test_declaration_callable_and_name(item)
+                call_info = self._call_infos.get(item, {}).get(self._PYTEST_WHEN_CALL, None)
+                if call_info is not None:
+                    err = (call_info.excinfo.type, call_info.excinfo.value, call_info.excinfo.tb)
+                else:
+                    err = (None, None, None)
+                if self._will_handle_test_error_or_failure(item, name, err):
                     outcome.force_result(self._PYTEST_EMPTY_STATUS)
             delattr(report, 'item')
 

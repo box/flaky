@@ -550,18 +550,6 @@ class TestFlakyPytestPlugin(object):
             ])
         assert stream.getvalue() == mock_stream.getvalue()
 
-    def test_flaky_plugin_handles_excinfo_set(
-        self,
-        flaky_plugin,
-        flaky_test,
-        call_info,
-        string_io,
-        mock_io,
-        mock_error,
-        mock_plugin_rerun,
-    ):
-        pass
-
     @staticmethod
     def _get_flaky_attributes(test):
         actual_flaky_attributes = dict((
