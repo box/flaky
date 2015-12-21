@@ -97,6 +97,27 @@ class FlakyPlugin(_FlakyPlugin):
             del self._call_infos[item]
         return True
 
+    def _get_test_name_and_err(self, item):
+        """
+        Get the test name and error tuple from a test item.
+
+        :param item:
+            py.test wrapper for the test function to be run
+        :type item:
+            :class:`Function`
+        :return:
+            The test name and error tuple.
+        :rtype:
+            (`unicode`, (`type`, :class:`Exception`, :class:`Traceback`) or (None, None, None))
+        """
+        _, _, name = self._get_test_declaration_callable_and_name(item)
+        call_info = self._call_infos.get(item, {}).get(self._PYTEST_WHEN_CALL, None)
+        if call_info is not None:
+            err = (call_info.excinfo.type, call_info.excinfo.value, call_info.excinfo.tb)
+        else:
+            err = (None, None, None)
+        return err, name
+
     @pytest.hookimpl(tryfirst=True, hookwrapper=True)
     def pytest_runtest_makereport(self, item, call):
         """
@@ -111,12 +132,7 @@ class FlakyPlugin(_FlakyPlugin):
             report.item = item
             report.original_outcome = report.outcome
             if report.failed:
-                _, _, name = self._get_test_declaration_callable_and_name(item)
-                call_info = self._call_infos.get(item, {}).get(self._PYTEST_WHEN_CALL, None)
-                if call_info is not None:
-                    err = (call_info.excinfo.type, call_info.excinfo.value, call_info.excinfo.tb)
-                else:
-                    err = (None, None, None)
+                err, name = self._get_test_name_and_err(item)
                 if self._will_handle_test_error_or_failure(item, name, err):
                     report.outcome = self._PYTEST_OUTCOME_PASSED
 
@@ -136,12 +152,7 @@ class FlakyPlugin(_FlakyPlugin):
                 if self._should_handle_test_success(item):
                     outcome.force_result(self._PYTEST_EMPTY_STATUS)
             elif report.original_outcome == self._PYTEST_OUTCOME_FAILED:
-                _, _, name = self._get_test_declaration_callable_and_name(item)
-                call_info = self._call_infos.get(item, {}).get(self._PYTEST_WHEN_CALL, None)
-                if call_info is not None:
-                    err = (call_info.excinfo.type, call_info.excinfo.value, call_info.excinfo.tb)
-                else:
-                    err = (None, None, None)
+                err, name = self._get_test_name_and_err(item)
                 if self._will_handle_test_error_or_failure(item, name, err):
                     outcome.force_result(self._PYTEST_EMPTY_STATUS)
             delattr(report, 'item')
