@@ -6,7 +6,11 @@ Release History
 Upcoming
 ++++++++
 
+3.0.2 (2015-12-21)
+++++++++++++++++++
+
 **Bugfixes**
+
 - Flaky for pytest no longer passes None for the first 2 arguments to the optional ``rerun_filter``.
 
 
@@ -14,6 +18,7 @@ Upcoming
 ++++++++++++++++++
 
 **Bugfixes**
+
 - Flaky for pytest no longer causes errors with the pytester plugin.
 
 3.0.0 (2015-12-14)
@@ -22,12 +27,14 @@ Upcoming
 - Flaky for pytest now reruns test setup and teardown. **This is a possibly breaking change.**
 
 **Bugfixes**
+
 - Bug with nose and multiprocess fixed.
 
 2.4.0 (2015-10-27)
 ++++++++++++++++++
 
 **Bugfixes**
+
 - The flaky report is now available under nose with the multiprocessing plugin.
 
 2.3.0 (2015-10-15)

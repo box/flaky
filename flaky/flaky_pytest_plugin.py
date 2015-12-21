@@ -108,7 +108,7 @@ class FlakyPlugin(_FlakyPlugin):
         :return:
             The test name and error tuple.
         :rtype:
-            (`unicode`, (`type`, :class:`Exception`, :class:`Traceback`) or (None, None, None))
+            ((`type`, :class:`Exception`, :class:`Traceback`) or (None, None, None), `unicode`)
         """
         _, _, name = self._get_test_declaration_callable_and_name(item)
         call_info = self._call_infos.get(item, {}).get(self._PYTEST_WHEN_CALL, None)
