@@ -118,3 +118,18 @@ def test_requiring_my_fixture(my_fixture, dummy_list=[]):
     # pylint:disable=dangerous-default-value,unused-argument
     dummy_list.append(0)
     assert len(dummy_list) > 1
+
+
+def _rerun_filter(err, name, test, plugin):
+    # pylint:disable=unused-argument
+    return issubclass(err[0], AssertionError)
+
+
+class TestExampleRerunFilter(object):
+    _threshold = -1
+
+    @flaky(rerun_filter=_rerun_filter)
+    def test_something_flaky(self):
+        # pylint:disable=no-self-use
+        TestExampleRerunFilter._threshold += 1
+        assert TestExampleRerunFilter._threshold >= 1
