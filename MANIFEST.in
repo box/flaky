@@ -1,1 +1,2 @@
 include README.rst LICENSE
+recursive-include test test*.py __init__.py
