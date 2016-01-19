@@ -150,7 +150,7 @@ class FlakyPlugin(_FlakyPlugin, Plugin):
         want_error = self._handle_test_error_or_failure(test, err)
         if not want_error and id(test) in self._tests_that_reran:
             self._nose_result.addError(test, err)
-        return want_error
+        return want_error or None
 
     def handleFailure(self, test, err):
         """
@@ -176,7 +176,7 @@ class FlakyPlugin(_FlakyPlugin, Plugin):
         want_failure = self._handle_test_error_or_failure(test, err)
         if not want_failure and id(test) in self._tests_that_reran:
             self._nose_result.addFailure(test, err)
-        return want_failure
+        return want_failure or None
 
     def addSuccess(self, test):
         """
@@ -199,7 +199,7 @@ class FlakyPlugin(_FlakyPlugin, Plugin):
             `bool`
         """
         # pylint:disable=invalid-name
-        return self._handle_test_success(test)
+        return self._handle_test_success(test) or None
 
     def report(self, stream):
         """
