@@ -1,8 +1,11 @@
 # -*- coding: utf-8 -*-
 
 from __future__ import unicode_literals
-from setuptools import setup, find_packages
 from os.path import dirname, join
+import sys
+from setuptools.command.test import test as TestCommand
+from setuptools import setup, find_packages
+
 
 CLASSIFIERS = [
     'Development Status :: 4 - Beta',
@@ -24,11 +27,33 @@ CLASSIFIERS = [
 ]
 
 
+class Tox(TestCommand):
+    user_options = [(b'tox-args=', b'a', 'Arguments to pass to tox')]
+
+    def initialize_options(self):
+        TestCommand.initialize_options(self)
+        self.tox_args = None
+
+    def finalize_options(self):
+        TestCommand.finalize_options(self)
+        self.test_args = []
+        self.test_suite = True
+
+    def run_tests(self):
+        import shlex
+        import tox
+        args = self.tox_args
+        if args:
+            args = shlex.split(self.tox_args)
+        errno = tox.cmdline(args=args)
+        sys.exit(errno)
+
+
 def main():
     base_dir = dirname(__file__)
     setup(
         name='flaky',
-        version='3.0.2',
+        version='3.0.3',
         description='Plugin for nose or py.test that automatically reruns flaky tests.',
         long_description=open(join(base_dir, 'README.rst')).read(),
         author='Box',
@@ -37,7 +62,8 @@ def main():
         license=open(join(base_dir, 'LICENSE')).read(),
         packages=find_packages(exclude=['test*']),
         test_suite='test',
-        tests_require=['pytest', 'nose'],
+        tests_require=['tox'],
+        cmdclass={'test': Tox},
         zip_safe=False,
         entry_points={
             'nose.plugins.0.10': [
