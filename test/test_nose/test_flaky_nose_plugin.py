@@ -281,7 +281,7 @@ class TestFlakyNosePlugin(TestCase):
             )
 
         self.assertEqual(
-            expected_plugin_handles_failure,
+            expected_plugin_handles_failure or None,
             actual_plugin_handles_failure,
             'Expected plugin{0} to handle the test run, but it did{1}.'.format(
                 ' to' if expected_plugin_handles_failure else '',
@@ -382,7 +382,7 @@ class TestFlakyNosePlugin(TestCase):
         )
 
         self.assertEqual(
-            expected_plugin_handles_success,
+            expected_plugin_handles_success or None,
             actual_plugin_handles_success,
             'Expected plugin{0} to handle the test run, but it did{1}.'.format(
                 ' not' if expected_plugin_handles_success else '',
