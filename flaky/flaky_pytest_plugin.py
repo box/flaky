@@ -112,7 +112,7 @@ class FlakyPlugin(_FlakyPlugin):
         """
         _, _, name = self._get_test_declaration_callable_and_name(item)
         call_info = self._call_infos.get(item, {}).get(self._PYTEST_WHEN_CALL, None)
-        if call_info is not None:
+        if call_info is not None and call_info.excinfo:
             err = (call_info.excinfo.type, call_info.excinfo.value, call_info.excinfo.tb)
         else:
             err = (None, None, None)
