@@ -6,6 +6,14 @@ Release History
 Upcoming
 ++++++++
 
+3.1.0 (2016-22-11)
+++++++++++++++++++
+
+- Flaky's automated tests now include a run with the ``pytest-xdist`` plugin enabled.
+- Flaky for pytest has slightly changed how it patches the runner. This simplifies the plugin code a bit, but,
+  more importantly, avoids reporting test retries until flaky is done with them. This *should* improve compatibility
+  with other plugins.
+
 3.0.2 (2015-12-21)
 ++++++++++++++++++
 

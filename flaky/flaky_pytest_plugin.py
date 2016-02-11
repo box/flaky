@@ -1,11 +1,8 @@
 # coding: utf-8
 
 from __future__ import unicode_literals
-import pytest
 
-# pylint:disable=import-error
-from _pytest.runner import CallInfo
-# pylint:enable=import-error
+from _pytest.runner import CallInfo  # pylint:disable=import-error
 
 from flaky._flaky_plugin import _FlakyPlugin
 
@@ -75,11 +72,11 @@ class FlakyPlugin(_FlakyPlugin):
                 self.max_runs,
                 self.min_passes,
             )
-        original_call_runtest_hook = self.runner.call_runtest_hook
+        original_call_and_report = self.runner.call_and_report
         self._call_infos[item] = {}
         should_rerun = True
         try:
-            self.runner.call_runtest_hook = self.call_runtest_hook
+            self.runner.call_and_report = self.call_and_report
             while should_rerun:
                 self.runner.pytest_runtest_protocol(item, nextitem)
                 call_info = self._call_infos.get(item, {}).get(self._PYTEST_WHEN_CALL, None)
@@ -93,9 +90,47 @@ class FlakyPlugin(_FlakyPlugin):
                     if not should_rerun:
                         item.excinfo = call_info.excinfo
         finally:
-            self.runner.call_runtest_hook = original_call_runtest_hook
+            self.runner.call_and_report = original_call_and_report
             del self._call_infos[item]
         return True
+
+    def call_and_report(self, item, when, log=True, **kwds):
+        """
+        Monkey patched from the runner plugin. Responsible for running
+        the test and reporting the outcome.
+        Had to be patched to avoid reporting about test retries.
+
+        :param item:
+            py.test wrapper for the test function to be run
+        :type item:
+            :class:`Function`
+        :param when:
+            The stage of the test being run. Usually one of 'setup', 'call', 'teardown'.
+        :type when:
+            `str`
+        :param log:
+            Whether or not to report the test outcome. Ignored for test
+            retries; flaky doesn't report test retries, only the final outcome.
+        :type log:
+            `bool`
+        """
+        call = self.call_runtest_hook(item, when, **kwds)
+        hook = item.ihook
+        report = hook.pytest_runtest_makereport(item=item, call=call)
+        # Start flaky modifications
+        if report.outcome == self._PYTEST_OUTCOME_PASSED:
+            if self._should_handle_test_success(item):
+                log = False
+        elif report.outcome == self._PYTEST_OUTCOME_FAILED:
+            err, name = self._get_test_name_and_err(item)
+            if self._will_handle_test_error_or_failure(item, name, err):
+                log = False
+        # End flaky modifications
+        if log:
+            hook.pytest_runtest_logreport(report=report)
+        if self.runner.check_interactive_exception(call, report):
+            hook.pytest_exception_interact(node=item, call=call, report=report)
+        return report
 
     def _get_test_name_and_err(self, item):
         """
@@ -117,45 +152,6 @@ class FlakyPlugin(_FlakyPlugin):
         else:
             err = (None, None, None)
         return err, name
-
-    @pytest.hookimpl(tryfirst=True, hookwrapper=True)
-    def pytest_runtest_makereport(self, item, call):
-        """
-        Pytest hook to intercept the report for reruns.
-
-        Change the report's outcome to 'passed' if flaky is going to handle the test run.
-        That way, pytest will not mark the run as failed.
-        """
-        outcome = yield
-        if call.when == self._PYTEST_WHEN_CALL:
-            report = outcome.get_result()
-            report.item = item
-            report.original_outcome = report.outcome
-            if report.failed:
-                err, name = self._get_test_name_and_err(item)
-                if self._will_handle_test_error_or_failure(item, name, err):
-                    report.outcome = self._PYTEST_OUTCOME_PASSED
-
-    @pytest.hookimpl(tryfirst=True, hookwrapper=True)
-    def pytest_report_teststatus(self, report):
-        """
-        Pytest hook to only add final runs to the report.
-
-        Given a test report, get the correpsonding test status.
-        For tests that flaky is handling, return the empty status
-        so it isn't reported; otherwise, don't change the status.
-        """
-        outcome = yield
-        if report.when == self._PYTEST_WHEN_CALL:
-            item = report.item
-            if report.original_outcome == self._PYTEST_OUTCOME_PASSED:
-                if self._should_handle_test_success(item):
-                    outcome.force_result(self._PYTEST_EMPTY_STATUS)
-            elif report.original_outcome == self._PYTEST_OUTCOME_FAILED:
-                err, name = self._get_test_name_and_err(item)
-                if self._will_handle_test_error_or_failure(item, name, err):
-                    outcome.force_result(self._PYTEST_EMPTY_STATUS)
-            delattr(report, 'item')
 
     def pytest_terminal_summary(self, terminalreporter):
         """
@@ -202,7 +198,7 @@ class FlakyPlugin(_FlakyPlugin):
         self.min_passes = config.option.min_passes
         self.runner = config.pluginmanager.getplugin("runner")
         if config.pluginmanager.hasplugin('xdist'):
-            config.pluginmanager.register(FlakyXdist(self))
+            config.pluginmanager.register(FlakyXdist(self), name='flaky.xdist')
             self.config = config
         if hasattr(config, 'slaveoutput'):
             config.slaveoutput['flaky_report'] = ''
