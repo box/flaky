@@ -95,9 +95,29 @@ class FlakyPlugin(_FlakyPlugin):
         return True
 
     def call_and_report(self, item, when, log=True, **kwds):
+        """
+        Monkey patched from the runner plugin. Responsible for running
+        the test and reporting the outcome.
+        Had to be patched to avoid reporting about test retries.
+
+        :param item:
+            py.test wrapper for the test function to be run
+        :type item:
+            :class:`Function`
+        :param when:
+            The stage of the test being run. Usually one of 'setup', 'call', 'teardown'.
+        :type when:
+            `str`
+        :param log:
+            Whether or not to report the test outcome. Ignored for test
+            retries; flaky doesn't report test retries, only the final outcome.
+        :type log:
+            `bool`
+        """
         call = self.call_runtest_hook(item, when, **kwds)
         hook = item.ihook
         report = hook.pytest_runtest_makereport(item=item, call=call)
+        # Start flaky modifications
         if report.outcome == self._PYTEST_OUTCOME_PASSED:
             if self._should_handle_test_success(item):
                 log = False
@@ -105,6 +125,7 @@ class FlakyPlugin(_FlakyPlugin):
             err, name = self._get_test_name_and_err(item)
             if self._will_handle_test_error_or_failure(item, name, err):
                 log = False
+        # End flaky modifications
         if log:
             hook.pytest_runtest_logreport(report=report)
         if self.runner.check_interactive_exception(call, report):
