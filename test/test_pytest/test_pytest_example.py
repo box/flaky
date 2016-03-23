@@ -2,11 +2,11 @@
 
 from __future__ import unicode_literals
 
-from unittest import TestCase
 # pylint:disable=import-error
 import pytest
 # pylint:enable=import-error
 from flaky import flaky
+from test.test_case_base import TestCase, skip
 
 
 # This is an end-to-end example of the flaky package in action. Consider it
@@ -133,3 +133,9 @@ class TestExampleRerunFilter(object):
         # pylint:disable=no-self-use
         TestExampleRerunFilter._threshold += 1
         assert TestExampleRerunFilter._threshold >= 1
+
+
+@skip('This test always fails')
+@flaky
+def test_something_that_always_fails_but_should_be_skipped():
+    assert 0

@@ -86,7 +86,8 @@ class FlakyPlugin(_FlakyPlugin):
                 if passed:
                     should_rerun = self.add_success(item)
                 else:
-                    should_rerun = self.add_failure(item, call_info.excinfo)
+                    skipped = call_info.excinfo.typename == 'Skipped'
+                    should_rerun = not skipped and self.add_failure(item, call_info.excinfo)
                     if not should_rerun:
                         item.excinfo = call_info.excinfo
         finally:
