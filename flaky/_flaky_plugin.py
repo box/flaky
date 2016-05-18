@@ -2,6 +2,7 @@
 
 from __future__ import unicode_literals
 from io import StringIO
+from traceback import format_exception
 from flaky import defaults
 from flaky.names import FlakyNames
 from flaky.utils import ensure_unicode_string
@@ -36,15 +37,15 @@ class _FlakyPlugin(object):
         Add messaging about a test failure to the stream, which will be
         printed by the plugin's report method.
         """
+        import types
+        tb = err[2]
+        assert tb is None or isinstance(tb, types.TracebackType), type(tb)
+        tb = ''.join(format_exception(*err)).rstrip()
         self._stream.writelines([
             ensure_unicode_string(test_callable_name),
             message,
             '\n\t',
-            ensure_unicode_string(err[0]),
-            '\n\t',
-            ensure_unicode_string(err[1]),
-            '\n\t',
-            ensure_unicode_string(err[2]),
+            ensure_unicode_string(tb).replace('\n', '\n\t'),
             '\n',
         ])
 

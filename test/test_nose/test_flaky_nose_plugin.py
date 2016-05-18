@@ -304,11 +304,7 @@ class TestFlakyNosePlugin(TestCase):
                     max_runs - current_runs - 1, max_runs
                 ),
                 '\n\t',
-                unicode_type(self._mock_error[0]),
-                '\n\t',
-                unicode_type(self._mock_error[1]),
-                '\n\t',
-                unicode_type(self._mock_error[2]),
+                'Exception: Error in test_method',
                 '\n',
             ])]
         else:
@@ -332,11 +328,7 @@ class TestFlakyNosePlugin(TestCase):
                     min_passes
                 ),
                 '\n\t',
-                unicode_type(self._mock_error[0]),
-                '\n\t',
-                unicode_type(self._mock_error[1]),
-                '\n\t',
-                unicode_type(self._mock_error[2]),
+                'Exception: Error in test_method',
                 '\n'
             ])]
         self.assertEqual(
