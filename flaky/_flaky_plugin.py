@@ -377,13 +377,19 @@ class _FlakyPlugin(object):
         :type stream:
             `file`
         """
+        value = self._stream.getvalue()
+
+        # If everything succeeded and --no-succes-flaky-report is specified
+        # don't print anything.
+        if not self._flaky_success_report and not value:
+            return
+
         stream.write('===Flaky Test Report===\n\n')
 
         # Python 2 will write to the stderr stream as a byte string, whereas
         # Python 3 will write to the stream as text. Only encode into a byte
         # string if the write tries to encode it first and raises a
         # UnicodeEncodeError.
-        value = self._stream.getvalue()
         try:
             stream.write(value)
         except UnicodeEncodeError:
