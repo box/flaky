@@ -379,7 +379,7 @@ class _FlakyPlugin(object):
         """
         value = self._stream.getvalue()
 
-        # If everything succeeded and --no-succes-flaky-report is specified
+        # If everything succeeded and --no-success-flaky-report is specified
         # don't print anything.
         if not self._flaky_success_report and not value:
             return
