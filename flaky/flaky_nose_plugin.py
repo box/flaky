@@ -85,7 +85,7 @@ class FlakyPlugin(_FlakyPlugin, Plugin):
         Base class override. Called before a test is run.
 
         Add the test to the test status tracker, so it can potentially
-        be rerun during stopTest.
+        be rerun during afterTest.
 
         :param test:
             The test that is going to be run.
@@ -95,7 +95,7 @@ class FlakyPlugin(_FlakyPlugin, Plugin):
         # pylint:disable=invalid-name
         self._test_status[test] = None
 
-    def stopTest(self, test):
+    def afterTest(self, test):
         """
         Base class override. Called after a test is run.
 
@@ -117,7 +117,7 @@ class FlakyPlugin(_FlakyPlugin, Plugin):
         Base class override. Rerun a flaky test.
 
         In this case, don't actually rerun the test, but mark it for
-        rerun during stopTest.
+        rerun during afterTest.
 
         :param test:
             The test that is going to be rerun.
