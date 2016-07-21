@@ -146,7 +146,7 @@ class FlakyPlugin(_FlakyPlugin):
         :rtype:
             ((`type`, :class:`Exception`, :class:`Traceback`) or (None, None, None), `unicode`)
         """
-        _, _, name = self._get_test_declaration_callable_and_name(item)
+        name = self._get_test_callable_name(item)
         call_info = self._call_infos.get(item, {}).get(self._PYTEST_WHEN_CALL, None)
         if call_info is not None and call_info.excinfo:
             err = (call_info.excinfo.type, call_info.excinfo.value, call_info.excinfo.tb)
@@ -313,21 +313,12 @@ class FlakyPlugin(_FlakyPlugin):
     @staticmethod
     def _get_test_callable_name(test):
         """
-        Get the name of the test callable from the test.
-
-        :param test:
-            The test that has raised an error or succeeded
-        :type test:
-            :class:`Function`
-        :return:
-            The name of the test callable that is being run by the test
-        :rtype:
-            `unicode`
+        Base class override.
         """
         return test.name
 
     @classmethod
-    def _get_test_declaration_callable_and_name(cls, test):
+    def _get_test_callable(cls, test):
         """
         Base class override.
 
@@ -349,24 +340,25 @@ class FlakyPlugin(_FlakyPlugin):
         if hasattr(test_instance, callable_name):
             # Test is a method of a class
             def_and_callable = getattr(test_instance, callable_name)
-            return def_and_callable, def_and_callable, callable_name
+            return def_and_callable
         elif hasattr(test_instance, unparametrized_name):
             # Test is a parametrized method of a class
             def_and_callable = getattr(test_instance, unparametrized_name)
-            return def_and_callable, def_and_callable, callable_name
-        elif hasattr(test, 'runner') and hasattr(test.runner, 'run'):
-            # Test is a doctest
-            return test, test.runner.run, callable_name
-        elif hasattr(test.module, callable_name):
-            # Test is a function in a module
-            def_and_callable = getattr(test.module, callable_name)
-            return def_and_callable, def_and_callable, callable_name
-        elif hasattr(test.module, unparametrized_name):
-            # Test is a parametrized function in a module
-            def_and_callable = getattr(test.module, unparametrized_name)
-            return def_and_callable, def_and_callable, callable_name
+            return def_and_callable
+        elif hasattr(test, 'module'):
+            if hasattr(test.module, callable_name):
+                # Test is a function in a module
+                def_and_callable = getattr(test.module, callable_name)
+                return def_and_callable
+            elif hasattr(test.module, unparametrized_name):
+                # Test is a parametrized function in a module
+                def_and_callable = getattr(test.module, unparametrized_name)
+                return def_and_callable
+        elif hasattr(test, 'runtest'):
+            # Test is a doctest or other non-Function Item
+            return test.runtest
         else:
-            return None, None, callable_name
+            return None
 
     def _mark_test_for_rerun(self, test):
         """Base class override. Rerun a flaky test."""

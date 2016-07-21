@@ -251,16 +251,7 @@ class FlakyPlugin(_FlakyPlugin, Plugin):
     @staticmethod
     def _get_test_callable_name(test):
         """
-        Get the name of the test callable from the test.
-
-        :param test:
-            The test that has raised an error or succeeded
-        :type test:
-            :class:`nose.case.Test`
-        :return:
-            The name of the test callable that is being run by the test
-        :rtype:
-            `unicode`
+        Base class override.
         """
         _, _, class_and_callable_name = test.address()
         first_dot_index = class_and_callable_name.find('.')
@@ -268,7 +259,7 @@ class FlakyPlugin(_FlakyPlugin, Plugin):
         return test_callable_name
 
     @classmethod
-    def _get_test_declaration_callable_and_name(cls, test):
+    def _get_test_callable(cls, test):
         """
         Base class override.
 
@@ -276,10 +267,6 @@ class FlakyPlugin(_FlakyPlugin, Plugin):
             The test that has raised an error or succeeded
         :type test:
             :class:`nose.case.Test`
-        :return:
-            The test declaration, callable and name that is being run
-        :rtype:
-            `tuple` of `object`, `callable`, `unicode`
         """
         callable_name = cls._get_test_callable_name(test)
         test_callable = getattr(
@@ -287,4 +274,4 @@ class FlakyPlugin(_FlakyPlugin, Plugin):
             callable_name,
             getattr(test.test, 'test', test.test),
         )
-        return test_callable, test_callable, callable_name
+        return test_callable

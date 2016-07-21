@@ -176,7 +176,7 @@ class _FlakyPlugin(object):
             `bool`
         """
         try:
-            _, _, name = self._get_test_declaration_callable_and_name(test)
+            name = self._get_test_callable_name(test)
         except AttributeError:
             return False
 
@@ -266,7 +266,7 @@ class _FlakyPlugin(object):
             `bool`
         """
         try:
-            _, _, name = self._get_test_declaration_callable_and_name(test)
+            name = self._get_test_callable_name(test)
         except AttributeError:
             return False
         need_reruns = self._should_handle_test_success(test)
@@ -407,7 +407,9 @@ class _FlakyPlugin(object):
         :type test:
             :class:`nose.case.Test`
         """
-        _, test_callable, _ = cls._get_test_declaration_callable_and_name(test)
+        test_callable = cls._get_test_callable(test)
+        if test_callable is None:
+            return
         for attr, value in cls._get_flaky_attributes(test_class).items():
             already_set = hasattr(test, attr)
             if already_set:
@@ -574,19 +576,34 @@ class _FlakyPlugin(object):
         return flaky[FlakyNames.CURRENT_PASSES] >= flaky[FlakyNames.MIN_PASSES]
 
     @classmethod
-    def _get_test_declaration_callable_and_name(cls, test):
+    def _get_test_callable(cls, test):
         """
-        Get the test declaration, the test callable,
-        and test callable name from the test.
+        Get the test callable, from the test.
 
         :param test:
             The test that has raised an error or succeeded
         :type test:
-            :class:`nose.case.Test` or :class:`Function`
+            :class:`nose.case.Test` or :class:`pytest.Item`
         :return:
             The test declaration, callable and name that is being run
         :rtype:
-            `tuple` of `object`, `callable`, `unicode`
+            `callable`
+        """
+        raise NotImplementedError  # pragma: no cover
+
+    @staticmethod
+    def _get_test_callable_name(test):
+        """
+        Get the name of the test callable from the test.
+
+        :param test:
+            The test that has raised an error or succeeded
+        :type test:
+            :class:`nose.case.Test` or :class:`pytest.Item`
+        :return:
+            The name of the test callable that is being run by the test
+        :rtype:
+            `unicode`
         """
         raise NotImplementedError  # pragma: no cover
 
