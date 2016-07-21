@@ -6,6 +6,16 @@ Release History
 Upcoming
 ++++++++
 
+3.2.0 (2016-07-21)
+++++++++++++++++++
+
+- Flaky will completely suppress the flaky report if ``--no-success-flaky-report`` is specified and no tests
+  needed to be rerun.
+
+**Bugfixes**
+- Flaky will no longer cause ``py.test --pep8`` to fail.
+
+
 3.1.0 (2016-22-11)
 ++++++++++++++++++
 

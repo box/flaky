@@ -336,9 +336,7 @@ class FlakyPlugin(_FlakyPlugin):
             unparametrized_name = callable_name[:callable_name.index('[')]
         else:
             unparametrized_name = callable_name
-        print test, test.name, callable_name
         test_instance = cls._get_test_instance(test)
-        print test, test.name, callable_name, test_instance
         if hasattr(test_instance, callable_name):
             # Test is a method of a class
             def_and_callable = getattr(test_instance, callable_name)
