@@ -605,6 +605,7 @@ class _FlakyPlugin(object):
         :rtype:
             `unicode`
         """
+        raise NotImplementedError  # pragma: no cover
 
     @classmethod
     def _make_test_flaky(cls, test, max_runs, min_passes):
