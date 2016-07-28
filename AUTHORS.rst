@@ -3,3 +3,4 @@ our testing framework. This is a list of contributors.
 
 - `@Jeff-Meadows <https://github.com/Jeff-Meadows>`_
 - `@benpatterson <https://github.com/benpatterson>`_
+- `@amygdalama <https://github.com/amygdalama>`_
