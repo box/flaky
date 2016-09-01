@@ -10,7 +10,7 @@ env:
   - TOX_ENV=coverage
 # commands to install dependencies
 install:
-  - pip install tox --use-mirrors
+  - pip install tox
 # commands to run
 script:
   - tox -e $TOX_ENV
