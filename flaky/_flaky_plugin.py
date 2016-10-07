@@ -351,7 +351,7 @@ class _FlakyPlugin(object):
             '--max-runs',
             action="store",
             dest="max_runs",
-            type="int",
+            type=int,
             default=2,
             help="If --force-flaky is specified, we will run each test at "
                  "most this many times (unless the test has its own flaky "
@@ -361,7 +361,7 @@ class _FlakyPlugin(object):
             '--min-passes',
             action="store",
             dest="min_passes",
-            type="int",
+            type=int,
             default=1,
             help="If --force-flaky is specified, we will run each test at "
                  "least this many times (unless the test has its own flaky "
