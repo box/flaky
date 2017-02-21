@@ -36,6 +36,7 @@ class FlakyPlugin(_FlakyPlugin):
     config = None
     _call_infos = {}
     _PYTEST_WHEN_CALL = 'call'
+    _PYTEST_WHEN_SETUP = 'setup'
     _PYTEST_OUTCOME_PASSED = 'passed'
     _PYTEST_OUTCOME_FAILED = 'failed'
     _PYTEST_EMPTY_STATUS = ('', '', '')
@@ -81,7 +82,15 @@ class FlakyPlugin(_FlakyPlugin):
                 self.runner.pytest_runtest_protocol(item, nextitem)
                 call_info = self._call_infos.get(item, {}).get(self._PYTEST_WHEN_CALL, None)
                 if call_info is None:
-                    return False
+                    # maybe it failed during setup, let's check
+                    setup_info = self._call_infos.get(item, {}).get(self._PYTEST_WHEN_SETUP, None)
+                    if setup_info.excinfo is not None:
+                        should_rerun = self.add_failure(item, setup_info.excinfo)
+                        if not should_rerun:
+                            item.excinfo = setup_info.excinfo
+                        continue
+                    else:
+                        return False
                 passed = call_info.excinfo is None
                 if passed:
                     should_rerun = self.add_success(item)
