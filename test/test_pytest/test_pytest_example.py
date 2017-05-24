@@ -20,6 +20,18 @@ def test_something_flaky(dummy_list=[]):
     assert len(dummy_list) > 1
 
 
+@pytest.fixture(scope='function')
+def failing_setup_fixture():
+    assert False
+
+
+@flaky
+@pytest.mark.xfail(strict=True)
+@pytest.mark.usefixtures("failing_setup_fixture")
+def test_something_good_with_failing_setup_fixture():
+    assert True
+
+
 class TestExample(object):
     _threshold = -1
 

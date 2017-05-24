@@ -119,13 +119,15 @@ class FlakyPlugin(_FlakyPlugin):
         hook = item.ihook
         report = hook.pytest_runtest_makereport(item=item, call=call)
         # Start flaky modifications
-        if report.outcome == self._PYTEST_OUTCOME_PASSED:
-            if self._should_handle_test_success(item):
-                log = False
-        elif report.outcome == self._PYTEST_OUTCOME_FAILED:
-            err, name = self._get_test_name_and_err(item)
-            if self._will_handle_test_error_or_failure(item, name, err):
-                log = False
+        # only retry on call, not setup or teardown
+        if report.when == self._PYTEST_WHEN_CALL:
+            if report.outcome == self._PYTEST_OUTCOME_PASSED:
+                if self._should_handle_test_success(item):
+                    log = False
+            elif report.outcome == self._PYTEST_OUTCOME_FAILED:
+                err, name = self._get_test_name_and_err(item)
+                if self._will_handle_test_error_or_failure(item, name, err):
+                    log = False
         # End flaky modifications
         if log:
             hook.pytest_runtest_logreport(report=report)
