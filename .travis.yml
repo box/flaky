@@ -1,13 +1,17 @@
 language: python
-env:
-  - TOX_ENV=py26
-  - TOX_ENV=py27
-  - TOX_ENV=py33
-  - TOX_ENV=py34
-  - TOX_ENV=pypy
-  - TOX_ENV=pep8
-  - TOX_ENV=pylint
-  - TOX_ENV=coverage
+matrix:
+  include:
+  - python: "2.6"
+    env: TOX_ENV=py26
+  - env: TOX_ENV=py27
+  - env: TOX_ENV=py33
+  - env: TOX_ENV=py34
+  - env: TOX_ENV=py35
+  - env: TOX_ENV=pypy
+  - env: TOX_ENV=pep8
+  - env: TOX_ENV=pylint
+  - env: TOX_ENV=coverage
+
 # commands to install dependencies
 install:
   - pip install tox

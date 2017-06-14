@@ -7,9 +7,6 @@ from test.test_case_base import TestCase
 
 
 class TestFlakyDecorator(TestCase):
-    def setUp(self):
-        super(TestFlakyDecorator, self).setUp()
-
     def test_flaky_raises_for_non_positive_min_passes(self):
         def test_something():
             pass

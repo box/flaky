@@ -14,9 +14,6 @@ class FlakyNames(object):
     MIN_PASSES = '_flaky_min_passes'
     RERUN_FILTER = '_flaky_rerun_filter'
 
-    def __init__(self):
-        super(FlakyNames, self).__init__()
-
     def items(self):
         return (
             self.CURRENT_ERRORS,
