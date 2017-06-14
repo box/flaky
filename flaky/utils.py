@@ -25,5 +25,4 @@ def ensure_unicode_string(obj):
     except UnicodeDecodeError:
         if hasattr(obj, 'decode'):
             return obj.decode('utf-8', 'replace')
-        else:
-            return str(obj).decode('utf-8', 'replace')
+        return str(obj).decode('utf-8', 'replace')

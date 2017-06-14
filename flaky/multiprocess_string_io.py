@@ -15,12 +15,6 @@ class MultiprocessingStringIO(object):
     _manager = multiprocessing.Manager()
     proxy = _manager.list()  # pylint:disable=no-member
 
-    def __init__(self):
-        """
-        Interface with the MP_STREAM ListProxy object
-        """
-        super(MultiprocessingStringIO, self).__init__()
-
     def getvalue(self):
         """
         Shadow the StringIO.getvalue method.

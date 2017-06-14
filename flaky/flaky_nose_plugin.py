@@ -63,8 +63,7 @@ class FlakyPlugin(_FlakyPlugin, Plugin):
         if multiprocess:
             from flaky.multiprocess_string_io import MultiprocessingStringIO
             return MultiprocessingStringIO()
-        else:
-            return self._stream
+        return self._stream
 
     def configure(self, options, conf):
         """Base class override."""

@@ -190,9 +190,8 @@ class _FlakyPlugin(object):
                     self._log_intermediate_failure(err, flaky_attributes, name)
                     self._mark_test_for_rerun(test)
                     return True
-                else:
-                    self._log_test_failure(name, err, self._not_rerun_message)
-                    return False
+                self._log_test_failure(name, err, self._not_rerun_message)
+                return False
             else:
                 flaky_attributes = self._get_flaky_attributes(test)
                 self._report_final_failure(err, flaky_attributes, name)
