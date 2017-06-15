@@ -6,6 +6,8 @@ from _pytest.runner import CallInfo  # pylint:disable=import-error
 
 from flaky._flaky_plugin import _FlakyPlugin
 
+import sys
+
 
 class FlakyXdist(object):
 
@@ -34,6 +36,7 @@ class FlakyPlugin(_FlakyPlugin):
     max_runs = None
     min_passes = None
     config = None
+    rerun_filter = None
     _call_infos = {}
     _PYTEST_WHEN_CALL = 'call'
     _PYTEST_OUTCOME_PASSED = 'passed'
@@ -71,6 +74,7 @@ class FlakyPlugin(_FlakyPlugin):
                 item,
                 self.max_runs,
                 self.min_passes,
+                rerun_filter=self.rerun_filter,
             )
         original_call_and_report = self.runner.call_and_report
         self._call_infos[item] = {}
@@ -200,6 +204,10 @@ class FlakyPlugin(_FlakyPlugin):
         self.max_runs = config.option.max_runs
         self.min_passes = config.option.min_passes
         self.runner = config.pluginmanager.getplugin("runner")
+        if config.option.rerun_filter:
+            module, attr = config.option.rerun_filter.rsplit('.', 1)
+            __import__(module)
+            self.rerun_filter = getattr(sys.modules[module], attr)
         if config.pluginmanager.hasplugin('xdist'):
             config.pluginmanager.register(FlakyXdist(self), name='flaky.xdist')
             self.config = config
