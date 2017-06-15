@@ -6,6 +6,12 @@ Release History
 Upcoming
 ++++++++
 
+3.4.0 (2017-06-15)
+++++++++++++++++++
+
+**Bugfixes**
+- Flaky for pytest will no longer silently swallow errors that occur during test setup.
+
 3.3.0 (2016-07-28)
 ++++++++++++++++++
 
