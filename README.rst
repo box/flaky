@@ -4,7 +4,7 @@ flaky
 .. image:: http://opensource.box.com/badges/active.svg
     :target: http://opensource.box.com/badges
 
-.. image:: https://travis-ci.org/box/flaky.png?branch=master
+.. image:: https://travis-ci.org/box/flaky.svg?branch=master
     :target: https://travis-ci.org/box/flaky
 
 .. image:: https://img.shields.io/pypi/v/flaky.svg
@@ -103,13 +103,13 @@ Flaky will run `test_something` twice, but will only run `test_something_else` o
 It can also be used to incur a delay between test retries:
 
 .. code-block:: python
-    
+
     import time
-    
+
     def delay_rerun(*args):
         time.sleep(1)
         return True
-    
+
     @flaky(rerun_filter=delay_rerun)
     def test_something_else():
         ...
