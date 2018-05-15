@@ -25,7 +25,7 @@ class FlakyXdist(object):
 
 class FlakyPlugin(_FlakyPlugin):
     """
-    Plugin for py.test that allows retrying flaky tests.
+    Plugin for pytest that allows retrying flaky tests.
 
     """
     runner = None
@@ -44,7 +44,7 @@ class FlakyPlugin(_FlakyPlugin):
         """
         Pytest hook to override how tests are run.
 
-        Runs a test collected by py.test.
+        Runs a test collected by pytest.
         - First, monkey patches the builtin runner module to call back to
         FlakyPlugin.call_runtest_hook rather than its own.
         - Then defers to the builtin runner module to run the test,
@@ -52,11 +52,11 @@ class FlakyPlugin(_FlakyPlugin):
         - Reports test results to the flaky report.
 
         :param item:
-            py.test wrapper for the test function to be run
+            pytest wrapper for the test function to be run
         :type item:
             :class:`Function`
         :param nextitem:
-            py.test wrapper for the next test function to be run
+            pytest wrapper for the next test function to be run
         :type nextitem:
             :class:`Function`
         :return:
@@ -102,7 +102,7 @@ class FlakyPlugin(_FlakyPlugin):
         Had to be patched to avoid reporting about test retries.
 
         :param item:
-            py.test wrapper for the test function to be run
+            pytest wrapper for the test function to be run
         :type item:
             :class:`Function`
         :param when:
@@ -140,7 +140,7 @@ class FlakyPlugin(_FlakyPlugin):
         Get the test name and error tuple from a test item.
 
         :param item:
-            py.test wrapper for the test function to be run
+            pytest wrapper for the test function to be run
         :type item:
             :class:`Function`
         :return:
@@ -263,7 +263,7 @@ class FlakyPlugin(_FlakyPlugin):
         CallInfo so the tests can be rerun if necessary.
 
         :param item:
-            py.test wrapper for the test function to be run
+            pytest wrapper for the test function to be run
         :type item:
             :class:`Function`
         """
@@ -284,7 +284,7 @@ class FlakyPlugin(_FlakyPlugin):
         that have not yet been achieved; retry if necessary.
 
         :param item:
-            py.test wrapper for the test function that has succeeded
+            pytest wrapper for the test function that has succeeded
         :type item:
             :class:`Function`
         """
@@ -298,7 +298,7 @@ class FlakyPlugin(_FlakyPlugin):
         that have not yet been achieved; retry if necessary.
 
         :param item:
-            py.test wrapper for the test function that has succeeded
+            pytest wrapper for the test function that has succeeded
         :type item:
             :class:`Function`
         :param err:

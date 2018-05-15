@@ -54,7 +54,7 @@ def main():
     setup(
         name='flaky',
         version='3.4.0',
-        description='Plugin for nose or py.test that automatically reruns flaky tests.',
+        description='Plugin for nose or pytest that automatically reruns flaky tests.',
         long_description=open(join(base_dir, 'README.rst')).read(),
         author='Box',
         author_email='oss@box.com',
