@@ -280,14 +280,14 @@ class _FlakyPlugin(object):
             if self._flaky_success_report:
                 self._stream.writelines([
                     ensure_unicode_string(name),
-                    ' passed {0} out of the required {1} times. '.format(
+                    ' passed {} out of the required {} times. '.format(
                         passes,
                         min_passes,
                     ),
                 ])
                 if need_reruns:
                     self._stream.write(
-                        'Running test again until it passes {0} times.\n'.format(
+                        'Running test again until it passes {} times.\n'.format(
                             min_passes,
                         )
                     )
@@ -506,12 +506,12 @@ class _FlakyPlugin(object):
         :rtype:
             `dict` of `unicode` to varies
         """
-        return dict((
-            (attr, cls._get_flaky_attribute(
+        return {
+            attr: cls._get_flaky_attribute(
                 test_item,
                 attr,
-            )) for attr in FlakyNames()
-        ))
+            ) for attr in FlakyNames()
+        }
 
     @classmethod
     def _add_flaky_test_failure(cls, test, err):

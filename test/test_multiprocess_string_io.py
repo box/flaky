@@ -3,10 +3,9 @@
 from __future__ import unicode_literals
 
 from io import StringIO
+from unittest import TestCase
 
 from genty import genty, genty_dataset
-
-from test.test_case_base import TestCase
 
 
 @genty
@@ -27,7 +26,7 @@ class TestMultiprocessStringIO(TestCase):
         one_write=([_unicode_string], _unicode_string),
         two_writes=(
             [_unicode_string, _unicode_string_non_ascii],
-            '{0}{1}'.format(_unicode_string, _unicode_string_non_ascii),
+            '{}{}'.format(_unicode_string, _unicode_string_non_ascii),
         )
     )
     def test_write_then_read(self, writes, expected_value):
@@ -41,7 +40,7 @@ class TestMultiprocessStringIO(TestCase):
         one_write=([_unicode_string], _unicode_string),
         two_writes=(
             [_unicode_string, _unicode_string_non_ascii],
-            '{0}{1}'.format(_unicode_string, _unicode_string_non_ascii),
+            '{}{}'.format(_unicode_string, _unicode_string_non_ascii),
         )
     )
     def test_writelines_then_read(self, lines, expected_value):
