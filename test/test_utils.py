@@ -26,7 +26,7 @@ class TestEnsureUnicodeString(TestCase):
         ex = Exception(encoded_message)
 
         string = ensure_unicode_string(ex)
-        if sys.version_info >= (3,):
+        if sys.version_info.major >= 3:
             message = unicode_type(encoded_message)
         self.assertEqual(string, message)
 
@@ -43,7 +43,7 @@ class TestEnsureUnicodeString(TestCase):
             expected_unicode_string,
     ):
         unicode_string = ensure_unicode_string(string)
-        if sys.version_info >= (3,):
+        if sys.version_info.major >= 3:
             expected_unicode_string = unicode_type(string)
         self.assertTrue(isinstance(unicode_string, unicode_type))
         self.assertTrue(expected_unicode_string in unicode_string)
