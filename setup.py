@@ -74,6 +74,7 @@ def main():
             ]
         },
         keywords='nose pytest plugin flaky tests rerun retry',
+        python_requires='>=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*',
         classifiers=CLASSIFIERS,
     )
 
