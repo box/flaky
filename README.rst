@@ -4,15 +4,11 @@ flaky
 .. image:: http://opensource.box.com/badges/active.svg
     :target: http://opensource.box.com/badges
 
-.. image:: https://travis-ci.org/box/flaky.png?branch=master
+.. image:: https://travis-ci.org/box/flaky.svg?branch=master
     :target: https://travis-ci.org/box/flaky
 
 .. image:: https://img.shields.io/pypi/v/flaky.svg
     :target: https://pypi.python.org/pypi/flaky
-
-.. image:: https://img.shields.io/pypi/dm/flaky.svg
-    :target: https://pypi.python.org/pypi/flaky
-
 
 About
 -----
