@@ -2,13 +2,14 @@
 
 from __future__ import unicode_literals
 
-# This is an end-to-end example of the flaky package in action. Consider it
-# a live tutorial, showing the various features in action.
+from unittest import TestCase, expectedFailure, skip
+
+from flaky import flaky
 
 from genty import genty, genty_dataset
 
-from flaky import flaky
-from test.test_case_base import TestCase, expectedFailure, skip
+# This is an end-to-end example of the flaky package in action. Consider it
+# a live tutorial, showing the various features in action.
 
 
 class ExampleTests(TestCase):
@@ -31,7 +32,7 @@ class ExampleTests(TestCase):
         """
         self._threshold += 1
         if self._threshold < 1:
-            raise Exception("Threshold is not high enough: {0} vs {1}.".format(
+            raise Exception("Threshold is not high enough: {} vs {}.".format(
                 self._threshold, 1),
             )
 
@@ -68,7 +69,7 @@ class ExampleFlakyTests(TestCase):
         """
         self._threshold += 1
         if self._threshold < 1:
-            raise Exception("Threshold is not high enough: {0} vs {1}.".format(
+            raise Exception("Threshold is not high enough: {} vs {}.".format(
                 self._threshold, 1),
             )
 
@@ -96,6 +97,6 @@ class ExampleFlakyTestsWithUnicodeTestNames(ExampleFlakyTests):
         self._threshold += 1
         if self._threshold < 1:
             raise Exception(
-                "Threshold is not high enough: {0} vs {1} for '{2}'.".format(
+                "Threshold is not high enough: {} vs {} for '{}'.".format(
                     self._threshold, 1, message),
             )
