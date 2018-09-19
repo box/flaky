@@ -1,15 +1,17 @@
 # coding: utf-8
 
 from __future__ import unicode_literals
-from genty import genty, genty_dataset
+
+from unittest import TestCase
+
 import mock
-from mock import MagicMock, Mock, patch
-from flaky import defaults
+from flaky import defaults, flaky_nose_plugin
 from flaky.flaky_decorator import flaky
-from flaky import flaky_nose_plugin
 from flaky.names import FlakyNames
 from flaky.utils import unicode_type
-from test.test_case_base import TestCase
+from mock import MagicMock, Mock, patch
+
+from genty import genty, genty_dataset
 
 
 @genty

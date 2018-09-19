@@ -1,9 +1,11 @@
 # coding: utf-8
 
 from __future__ import unicode_literals
+
+from unittest import TestCase
+
 from flaky.flaky_decorator import flaky
 from flaky.names import FlakyNames
-from test.test_case_base import TestCase
 
 
 class TestFlakyDecorator(TestCase):

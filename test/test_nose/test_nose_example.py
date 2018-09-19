@@ -2,13 +2,16 @@
 
 from __future__ import unicode_literals
 
-# This is an end-to-end example of the flaky package in action. Consider it
-# a live tutorial, showing the various features in action.
+from unittest import TestCase, expectedFailure, skip
+
+from flaky import flaky
 
 from genty import genty, genty_dataset
 
-from flaky import flaky
-from test.test_case_base import TestCase, expectedFailure, skip
+# This is an end-to-end example of the flaky package in action. Consider it
+# a live tutorial, showing the various features in action.
+
+
 
 
 class ExampleTests(TestCase):

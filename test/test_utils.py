@@ -3,11 +3,11 @@
 from __future__ import unicode_literals
 
 import sys
-
-from genty import genty, genty_dataset
+from unittest import TestCase
 
 from flaky.utils import ensure_unicode_string, unicode_type
-from test.test_case_base import TestCase
+
+from genty import genty, genty_dataset
 
 
 @genty

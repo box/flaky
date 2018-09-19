@@ -3,10 +3,9 @@
 from __future__ import unicode_literals
 
 from io import StringIO
+from unittest import TestCase
 
 from genty import genty, genty_dataset
-
-from test.test_case_base import TestCase
 
 
 @genty
