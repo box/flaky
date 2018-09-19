@@ -31,13 +31,13 @@ class TestFlakyDecorator(TestCase):
         def test_something():
             pass
 
-        flaky_attribute = dict((
-            (attr, getattr(
+        flaky_attribute = {
+            attr: getattr(
                 test_something,
                 attr,
                 None
-            )) for attr in FlakyNames()
-        ))
+            ) for attr in FlakyNames()
+        }
 
         self.assertIsNotNone(flaky_attribute)
         self.assertDictContainsSubset(

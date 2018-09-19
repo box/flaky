@@ -32,12 +32,12 @@ class TestFlakyNosePlugin(TestCase):
         self._mock_test_module_name = 'test_module'
         self._mock_test_class_name = 'TestClass'
         self._mock_test_method_name = 'test_method'
-        self._mock_test_names = '{0}:{1}.{2}'.format(
+        self._mock_test_names = '{}:{}.{}'.format(
             self._mock_test_module_name,
             self._mock_test_class_name,
             self._mock_test_method_name
         )
-        self._mock_exception = Exception('Error in {0}'.format(
+        self._mock_exception = Exception('Error in {}'.format(
             self._mock_test_method_name)
         )
         self._mock_stack_trace = ''
@@ -202,16 +202,15 @@ class TestFlakyNosePlugin(TestCase):
         self.assertEqual(self._mock_nose_result.mock_calls, [])
 
     def _get_flaky_attributes(self):
-        actual_flaky_attributes = dict((
-            (
-                attr,
+        actual_flaky_attributes = {
+                attr:
                 getattr(
                     self._mock_test_case,
                     attr,
                     None,
                 )
-            ) for attr in FlakyNames()
-        ))
+             for attr in FlakyNames()
+        }
         for key, value in actual_flaky_attributes.items():
             if isinstance(value, list):
                 actual_flaky_attributes[key] = tuple(value)
@@ -228,7 +227,7 @@ class TestFlakyNosePlugin(TestCase):
         self.assertDictContainsSubset(
             expected_flaky_attributes,
             actual_flaky_attributes,
-            'Unexpected flaky attributes. Expected {0} got {1}'.format(
+            'Unexpected flaky attributes. Expected {} got {}'.format(
                 expected_flaky_attributes,
                 actual_flaky_attributes
             )
@@ -283,7 +282,7 @@ class TestFlakyNosePlugin(TestCase):
         self.assertEqual(
             expected_plugin_handles_failure or None,
             actual_plugin_handles_failure,
-            'Expected plugin{0} to handle the test run, but it did{1}.'.format(
+            'Expected plugin{} to handle the test run, but it did{}.'.format(
                 ' to' if expected_plugin_handles_failure else '',
                 '' if actual_plugin_handles_failure else ' not'
             ),
@@ -300,7 +299,7 @@ class TestFlakyNosePlugin(TestCase):
             expected_test_case_calls.append(('__hash__',))
             expected_stream_calls = [mock.call.writelines([
                 self._mock_test_method_name,
-                ' failed ({0} runs remaining out of {1}).'.format(
+                ' failed ({} runs remaining out of {}).'.format(
                     max_runs - current_runs - 1, max_runs
                 ),
                 '\n\t',
@@ -327,7 +326,7 @@ class TestFlakyNosePlugin(TestCase):
                     ))
             expected_stream_calls = [mock.call.writelines([
                 self._mock_test_method_name,
-                ' failed; it passed {0} out of the required {1} times.'.format(
+                ' failed; it passed {} out of the required {} times.'.format(
                     current_passes,
                     min_passes
                 ),
@@ -346,7 +345,7 @@ class TestFlakyNosePlugin(TestCase):
         self.assertEqual(
             self._mock_test_case.mock_calls,
             expected_test_case_calls,
-            'Unexpected TestCase calls: {0} vs {1}'.format(
+            'Unexpected TestCase calls: {} vs {}'.format(
                 self._mock_test_case.mock_calls,
                 expected_test_case_calls
             )
@@ -384,7 +383,7 @@ class TestFlakyNosePlugin(TestCase):
         self.assertEqual(
             expected_plugin_handles_success or None,
             actual_plugin_handles_success,
-            'Expected plugin{0} to handle the test run, but it did{1}.'.format(
+            'Expected plugin{} to handle the test run, but it did{}.'.format(
                 ' not' if expected_plugin_handles_success else '',
                 '' if actual_plugin_handles_success else ' not'
             ),
@@ -398,7 +397,7 @@ class TestFlakyNosePlugin(TestCase):
         expected_test_case_calls = [mock.call.address(), mock.call.address()]
         expected_stream_calls = [mock.call.writelines([
             self._mock_test_method_name,
-            " passed {0} out of the required {1} times. ".format(
+            " passed {} out of the required {} times. ".format(
                 current_passes + 1,
                 min_passes,
             ),
@@ -414,7 +413,7 @@ class TestFlakyNosePlugin(TestCase):
         self.assertEqual(
             self._mock_test_case.mock_calls,
             expected_test_case_calls,
-            'Unexpected TestCase calls = {0} vs {1}'.format(
+            'Unexpected TestCase calls = {} vs {}'.format(
                 self._mock_test_case.mock_calls,
                 expected_test_case_calls,
             ),

@@ -21,7 +21,7 @@ class TestEnsureUnicodeString(TestCase):
     _byte_string_windows_encoded = _hello.encode('windows-1252')
 
     def test_ensure_unicode_string_handles_nonascii_exception_message(self):
-        message = u'\u2013'
+        message = '\u2013'
         encoded_message = message.encode('utf-8')
         ex = Exception(encoded_message)
 
