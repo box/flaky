@@ -45,5 +45,5 @@ class TestEnsureUnicodeString(TestCase):
         unicode_string = ensure_unicode_string(string)
         if sys.version_info.major >= 3:
             expected_unicode_string = unicode_type(string)
-        self.assertTrue(isinstance(unicode_string, unicode_type))
-        self.assertTrue(expected_unicode_string in unicode_string)
+        self.assertIsInstance(unicode_string, unicode_type)
+        self.assertIn(expected_unicode_string, unicode_string)
