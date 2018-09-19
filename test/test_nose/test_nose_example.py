@@ -12,8 +12,6 @@ from genty import genty, genty_dataset
 # a live tutorial, showing the various features in action.
 
 
-
-
 class ExampleTests(TestCase):
     _threshold = -1
 

@@ -210,8 +210,7 @@ class TestFlakyNosePlugin(TestCase):
                     self._mock_test_case,
                     attr,
                     None,
-                )
-             for attr in FlakyNames()
+                ) for attr in FlakyNames()
         }
         for key, value in actual_flaky_attributes.items():
             if isinstance(value, list):

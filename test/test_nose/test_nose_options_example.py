@@ -11,7 +11,6 @@ from flaky import flaky
 # command line.
 
 
-
 class ExampleTests(TestCase):
     _threshold = -2
 
