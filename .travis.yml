@@ -1,19 +1,24 @@
 language: python
+cache: pip
+
 matrix:
   include:
-  - env: TOX_ENV=py27
-  - env: TOX_ENV=py34
-  - env: TOX_ENV=py35
-  - env: TOX_ENV=pypy
+  - python: "2.7"
+  - python: "3.4"
+  - python: "3.5"
+  - python: "2.7"
+  - python: pypy
   - env: TOX_ENV=pep8
   - env: TOX_ENV=pylint
   - env: TOX_ENV=coverage
 
 # commands to install dependencies
 install:
-  - pip install tox
+  - pip install -U tox-travis
+
 # commands to run
 script:
-  - tox -e $TOX_ENV
+  - tox
+
 after_success:
   - if [ "-x$TOX_ENV" = "xcoverage" ]; then coveralls; fi
