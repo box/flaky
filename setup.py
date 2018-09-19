@@ -13,9 +13,9 @@ CLASSIFIERS = [
     'License :: OSI Approved :: Apache Software License',
     'Topic :: Software Development :: Testing',
     'Programming Language :: Python',
-    'Programming Language :: Python :: 2.6',
+    'Programming Language :: Python :: 2',
     'Programming Language :: Python :: 2.7',
-    'Programming Language :: Python :: 3.3',
+    'Programming Language :: Python :: 3',
     'Programming Language :: Python :: 3.4',
     'Programming Language :: Python :: 3.5',
     'Programming Language :: Python :: Implementation :: CPython',
@@ -74,6 +74,7 @@ def main():
             ]
         },
         keywords='nose pytest plugin flaky tests rerun retry',
+        python_requires='>=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*',
         classifiers=CLASSIFIERS,
     )
 

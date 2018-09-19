@@ -2,12 +2,13 @@
 
 from __future__ import unicode_literals
 
+from unittest import TestCase
+
+from flaky import flaky
+
 # This is a series of tests that do not use the flaky decorator; the flaky
 # behavior is intended to be enabled with the --force-flaky option on the
 # command line.
-
-from flaky import flaky
-from test.test_case_base import TestCase
 
 
 class ExampleTests(TestCase):

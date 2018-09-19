@@ -450,13 +450,13 @@ class TestFlakyPytestPlugin(object):
         )
         stream.writelines([
             self._test_method_name,
-            " passed {0} out of the required {1} times. ".format(
+            " passed {} out of the required {} times. ".format(
                 current_passes + 1, min_passes,
             ),
         ])
         if expected_plugin_handles_success:
             stream.write(
-                'Running test again until it passes {0} times.\n'.format(
+                'Running test again until it passes {} times.\n'.format(
                     min_passes,
                 ),
             )
@@ -521,7 +521,7 @@ class TestFlakyPytestPlugin(object):
         if expected_plugin_handles_failure:
             stream.writelines([
                 self._test_method_name,
-                ' failed ({0} runs remaining out of {1}).'.format(
+                ' failed ({} runs remaining out of {}).'.format(
                     max_runs - current_runs - 1, max_runs
                 ),
                 '\n\t',
@@ -552,11 +552,11 @@ class TestFlakyPytestPlugin(object):
 
     @staticmethod
     def _get_flaky_attributes(test):
-        actual_flaky_attributes = dict((
-            (attr, getattr(
+        actual_flaky_attributes = {
+            attr: getattr(
                 test,
                 attr,
                 None,
-            )) for attr in FlakyNames()
-        ))
+            ) for attr in FlakyNames()
+        }
         return actual_flaky_attributes
