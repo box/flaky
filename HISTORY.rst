@@ -6,6 +6,14 @@ Release History
 Upcoming
 ++++++++
 
+3.5.0 (2019-01-07)
+++++++++++++++++++
+
+- Updated references to pytest instead of py.test.
+
+**Bugfixes**
+- Flaky is now compatible with pytext >= 4.1.
+
 3.4.0 (2017-06-15)
 ++++++++++++++++++
 
