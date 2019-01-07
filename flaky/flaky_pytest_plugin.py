@@ -269,7 +269,7 @@ class FlakyPlugin(_FlakyPlugin):
         """
         hookname = "pytest_runtest_" + when
         ihook = getattr(item.ihook, hookname)
-        call_info = CallInfo(
+        call_info = getattr(CallInfo, "from_call", CallInfo)(
             lambda: ihook(item=item, **kwds),
             when=when,
         )
