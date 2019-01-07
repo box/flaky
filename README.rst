@@ -13,7 +13,7 @@ flaky
 About
 -----
 
-Flaky is a plugin for nose or py.test that automatically reruns flaky tests.
+Flaky is a plugin for nose or pytest that automatically reruns flaky tests.
 
 Ideally, tests reliably pass or fail, but sometimes test fixtures must rely on components that aren't 100%
 reliable. With flaky, instead of removing those tests or marking them to @skip, they can be automatically
@@ -119,11 +119,11 @@ Like any nose plugin, flaky can be activated via the command line:
 
     nosetests --with-flaky
 
-With py.test, flaky will automatically run. It can, however be disabled via the command line:
+With pytest, flaky will automatically run. It can, however be disabled via the command line:
 
 .. code-block:: console
 
-    py.test -p no:flaky
+    pytest -p no:flaky
 
 Command line arguments
 ~~~~~~~~~~~~~~~~~~~~~~
