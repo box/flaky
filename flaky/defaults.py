@@ -24,7 +24,7 @@ class FilterWrapper(object):
         return self._filter(*args, **kwargs)
 
 
-def default_flaky_attributes(max_runs, min_passes, rerun_filter=None):
+def default_flaky_attributes(max_runs=None, min_passes=None, rerun_filter=None):
     """
     Returns the default flaky attributes to set on a flaky test.
 
@@ -45,6 +45,15 @@ def default_flaky_attributes(max_runs, min_passes, rerun_filter=None):
     :rtype:
         `dict`
     """
+    if max_runs is None:
+        max_runs = 2
+    if min_passes is None:
+        min_passes = 1
+    if min_passes <= 0:
+        raise ValueError('min_passes must be positive')
+    if max_runs < min_passes:
+        raise ValueError('min_passes cannot be greater than max_runs!')
+
     return {
         FlakyNames.MAX_RUNS: max_runs,
         FlakyNames.MIN_PASSES: min_passes,

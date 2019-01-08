@@ -128,7 +128,7 @@ def test_flaky_plugin_report(flaky_plugin, mock_io, string_io):
     {'flaky_report': ''},
     {'flaky_report': 'ŝȁḿҏľȅ ƭȅхƭ'},
 ))
-def mock_xdist_node_slaveoutput(request):
+def mock_xdist_node_workeroutput(request):
     return request.param
 
 
@@ -137,24 +137,25 @@ def mock_xdist_error(request):
     return request.param
 
 
-@pytest.mark.parametrize('assign_slaveoutput', (True, False))
+@pytest.mark.parametrize('assign_workeroutput', (True, False))
 def test_flaky_xdist_nodedown(
-        mock_xdist_node_slaveoutput,
-        assign_slaveoutput,
+        mock_xdist_node_workeroutput,
+        assign_workeroutput,
         mock_xdist_error
 ):
     flaky_xdist = FlakyXdist(PLUGIN)
     node = Mock()
-    if assign_slaveoutput:
-        node.slaveoutput = mock_xdist_node_slaveoutput
+    if assign_workeroutput:
+        node.workeroutput = mock_xdist_node_workeroutput
     else:
+        delattr(node, 'workeroutput')
         delattr(node, 'slaveoutput')
     mock_stream = Mock(StringIO)
     with patch.object(PLUGIN, '_stream', mock_stream):
         flaky_xdist.pytest_testnodedown(node, mock_xdist_error)
-    if assign_slaveoutput and 'flaky_report' in mock_xdist_node_slaveoutput:
+    if assign_workeroutput and 'flaky_report' in mock_xdist_node_workeroutput:
         mock_stream.write.assert_called_once_with(
-            mock_xdist_node_slaveoutput['flaky_report'],
+            mock_xdist_node_workeroutput['flaky_report'],
         )
     else:
         assert not mock_stream.write.called
@@ -180,9 +181,9 @@ def test_flaky_session_finish_copies_flaky_report(
     PLUGIN.stream.truncate()
     PLUGIN.stream.write(stream_report)
     PLUGIN.config = Mock()
-    PLUGIN.config.slaveoutput = {'flaky_report': initial_report}
+    PLUGIN.config.workeroutput = {'flaky_report': initial_report}
     PLUGIN.pytest_sessionfinish()
-    assert PLUGIN.config.slaveoutput['flaky_report'] == expected_report
+    assert PLUGIN.config.workeroutput['flaky_report'] == expected_report
 
 
 def test_flaky_plugin_can_suppress_success_report(

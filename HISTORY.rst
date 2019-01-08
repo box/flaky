@@ -6,13 +6,25 @@ Release History
 Upcoming
 ++++++++
 
+3.5.1 (2019-01-09)
+++++++++++++++++++
+
+- Officially support and test on Python 3.6 and 3.7.
+- Adds a pytest marker that can be used instead of ```@flaky``.
+- Replaced references to 'slaveoutput', where possible
+  with 'workeroutput', following the convention chosen by pytest.
+- Prints formatted tracebacks in the flaky report when using nose.
+
+**Bugfixes**
+- Ensure that tests are only reported as successful to the nose runner once.
+
 3.5.0 (2019-01-07)
 ++++++++++++++++++
 
 - Updated references to pytest instead of py.test.
 
 **Bugfixes**
-- Flaky is now compatible with pytext >= 4.1.
+- Flaky is now compatible with pytest >= 4.1.
 
 3.4.0 (2017-06-15)
 ++++++++++++++++++

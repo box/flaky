@@ -30,6 +30,7 @@ class FlakyPlugin(_FlakyPlugin, Plugin):
         self._min_passes = None
         self._test_status = {}
         self._tests_that_reran = set()
+        self._tests_that_have_been_reported = set()
 
     def options(self, parser, env=os.environ):
         """
@@ -198,7 +199,15 @@ class FlakyPlugin(_FlakyPlugin, Plugin):
             `bool`
         """
         # pylint:disable=invalid-name
-        return self._handle_test_success(test) or None
+        will_handle = self._handle_test_success(test)
+        test_id = id(test)
+        # If this isn't a rerun, the builtin reporter is going to report it as a success
+        if will_handle and test_id not in self._tests_that_reran:
+            self._tests_that_have_been_reported.add(test_id)
+        # If this test hasn't already been reported as successful, then do it now
+        if not will_handle and test_id in self._tests_that_reran and test_id not in self._tests_that_have_been_reported:
+            self._nose_result.addSuccess(test)
+        return will_handle or None
 
     def report(self, stream):
         """

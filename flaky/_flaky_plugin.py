@@ -1,7 +1,10 @@
 # coding: utf-8
 
 from __future__ import unicode_literals
+
 from io import StringIO
+from traceback import format_exception
+
 from flaky import defaults
 from flaky.names import FlakyNames
 from flaky.utils import ensure_unicode_string
@@ -36,15 +39,11 @@ class _FlakyPlugin(object):
         Add messaging about a test failure to the stream, which will be
         printed by the plugin's report method.
         """
+        formatted_exception_info = ''.join(format_exception(*err)).replace('\n', '\n\t').rstrip()
         self._stream.writelines([
             ensure_unicode_string(test_callable_name),
-            message,
-            '\n\t',
-            ensure_unicode_string(err[0]),
-            '\n\t',
-            ensure_unicode_string(err[1]),
-            '\n\t',
-            ensure_unicode_string(err[2]),
+            ensure_unicode_string(message),
+            ensure_unicode_string(formatted_exception_info),
             '\n',
         ])
 
@@ -192,9 +191,8 @@ class _FlakyPlugin(object):
                     return True
                 self._log_test_failure(name, err, self._not_rerun_message)
                 return False
-            else:
-                flaky_attributes = self._get_flaky_attributes(test)
-                self._report_final_failure(err, flaky_attributes, name)
+            flaky_attributes = self._get_flaky_attributes(test)
+            self._report_final_failure(err, flaky_attributes, name)
         return False
 
     def _should_rerun_test(self, test, name, err):
@@ -607,7 +605,7 @@ class _FlakyPlugin(object):
         raise NotImplementedError  # pragma: no cover
 
     @classmethod
-    def _make_test_flaky(cls, test, max_runs, min_passes):
+    def _make_test_flaky(cls, test, max_runs=None, min_passes=None):
         """
         Make a given test flaky.
 
