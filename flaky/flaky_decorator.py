@@ -45,14 +45,6 @@ def flaky(max_runs=None, min_passes=None, rerun_filter=None):
     wrapped = None
     if hasattr(max_runs, '__call__'):
         wrapped, max_runs = max_runs, None
-    if max_runs is None:
-        max_runs = 2
-    if min_passes is None:
-        min_passes = 1
-    if min_passes <= 0:
-        raise ValueError('min_passes must be positive')
-    if max_runs < min_passes:
-        raise ValueError('min_passes cannot be greater than max_runs!')
 
     attrib = default_flaky_attributes(max_runs, min_passes, rerun_filter)
 

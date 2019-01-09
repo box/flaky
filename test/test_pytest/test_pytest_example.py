@@ -37,7 +37,6 @@ class TestExample(object):
 
     def test_non_flaky_thing(self):
         """Flaky will not interact with this test"""
-        pass
 
     @pytest.mark.xfail
     def test_non_flaky_failing_thing(self):
@@ -67,7 +66,6 @@ class TestExample(object):
     @flaky(2, 2)
     def test_flaky_thing_that_always_passes(self):
         """Flaky will run this test twice.  Both will succeed."""
-        pass
 
     @pytest.mark.skipif(
         'True',
@@ -109,6 +107,20 @@ class TestExampleFlakyTestCase(TestCase):
 
 class TestFlakySubclass(TestExampleFlakyTestCase):
     pass
+
+
+@pytest.mark.flaky
+class TestMarkedClass(object):
+    _threshold = -1
+
+    @staticmethod
+    def test_flaky_thing_that_fails_then_succeeds():
+        """
+        Flaky will run this test twice.
+        It will fail once and then succeed.
+        """
+        TestMarkedClass._threshold += 1
+        assert TestMarkedClass._threshold >= 1
 
 
 def _test_flaky_doctest():

@@ -4,14 +4,13 @@ from __future__ import unicode_literals
 
 from unittest import TestCase
 
+from genty import genty, genty_dataset
 import mock
+from mock import MagicMock, Mock, patch
+
 from flaky import defaults, flaky_nose_plugin
 from flaky.flaky_decorator import flaky
 from flaky.names import FlakyNames
-from flaky.utils import unicode_type
-from mock import MagicMock, Mock, patch
-
-from genty import genty, genty_dataset
 
 
 @genty
@@ -47,7 +46,7 @@ class TestFlakyNosePlugin(TestCase):
         self._mock_error = (
             self._mock_exception_type,
             self._mock_exception,
-            self._mock_stack_trace
+            None,
         )
         self._mock_test_method = MagicMock(
             name=self._mock_test_method_name,
@@ -205,12 +204,11 @@ class TestFlakyNosePlugin(TestCase):
 
     def _get_flaky_attributes(self):
         actual_flaky_attributes = {
-                attr:
-                getattr(
-                    self._mock_test_case,
-                    attr,
-                    None,
-                ) for attr in FlakyNames()
+            attr: getattr(
+                self._mock_test_case,
+                attr,
+                None,
+            ) for attr in FlakyNames()
         }
         for key, value in actual_flaky_attributes.items():
             if isinstance(value, list):
@@ -303,12 +301,7 @@ class TestFlakyNosePlugin(TestCase):
                 ' failed ({} runs remaining out of {}).'.format(
                     max_runs - current_runs - 1, max_runs
                 ),
-                '\n\t',
-                unicode_type(self._mock_error[0]),
-                '\n\t',
-                unicode_type(self._mock_error[1]),
-                '\n\t',
-                unicode_type(self._mock_error[2]),
+                'Exception: Error in test_method',
                 '\n',
             ])]
         else:
@@ -331,12 +324,7 @@ class TestFlakyNosePlugin(TestCase):
                     current_passes,
                     min_passes
                 ),
-                '\n\t',
-                unicode_type(self._mock_error[0]),
-                '\n\t',
-                unicode_type(self._mock_error[1]),
-                '\n\t',
-                unicode_type(self._mock_error[2]),
+                'Exception: Error in test_method',
                 '\n'
             ])]
         self.assertEqual(

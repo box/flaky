@@ -39,7 +39,9 @@
 # C0111 => Missing docstring
 # W0108 => unnecessary lambda
 # W0142 => Used * or ** magic
-disable=I, C0111, W0108, W0142, R0921
+# R0921 => Abstract class not referenced
+# R0205 => Useless object inheritence: codebase still supports 2.7
+disable=I, C0111, W0108, W0142, R0921, R0205
 
 
 [REPORTS]
