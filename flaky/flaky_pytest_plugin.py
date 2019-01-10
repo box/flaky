@@ -228,9 +228,15 @@ class FlakyPlugin(_FlakyPlugin):
         :param item:
             The test item.
         """
-        for marker in item.iter_markers(name='flaky'):
-            if not self._has_flaky_attributes(item):
-                self._make_test_flaky(item, *marker.args, **marker.kwargs)
+        if not self._has_flaky_attributes(item):
+            if hasattr(item, 'iter_markers'):
+                for marker in item.iter_markers(name='flaky'):
+                    self._make_test_flaky(item, *marker.args, **marker.kwargs)
+                    break
+            elif hasattr(item, 'get_marker'):
+                marker = item.get_marker('flaky')
+                if marker:
+                    self._make_test_flaky(item, *marker.args, **marker.kwargs)
 
     def pytest_sessionfinish(self):
         """
