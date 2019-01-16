@@ -605,7 +605,7 @@ class _FlakyPlugin(object):
         raise NotImplementedError  # pragma: no cover
 
     @classmethod
-    def _make_test_flaky(cls, test, max_runs=None, min_passes=None):
+    def _make_test_flaky(cls, test, max_runs=None, min_passes=None, rerun_filter=None):
         """
         Make a given test flaky.
 
@@ -621,7 +621,22 @@ class _FlakyPlugin(object):
             The value of the FlakyNames.MIN_PASSES attribute to use.
         :type min_passes:
             `int`
+        :param rerun_filter:
+            Filter function to decide whether a test should be rerun if it fails.
+            Function signature is as follows:
+                (err, name, test, plugin) -> should_rerun
+            - err (`tuple` of `class`, :class:`Exception`, `traceback`):
+                Information about the test failure (from sys.exc_info())
+            - name (`unicode`):
+                The test name
+            - test (:class:`nose.case.Test` or :class:`Function`):
+                The test that has raised an error
+            - plugin (:class:`FlakyNosePlugin` or :class:`FlakyPytestPlugin`):
+                The flaky plugin. Has a :prop:`stream` that can be written to in
+                order to add to the Flaky Report.
+        :type rerun_filter:
+            `callable`
         """
-        attrib_dict = defaults.default_flaky_attributes(max_runs, min_passes)
+        attrib_dict = defaults.default_flaky_attributes(max_runs, min_passes, rerun_filter)
         for attr, value in attrib_dict.items():
             cls._set_flaky_attribute(test, attr, value)
