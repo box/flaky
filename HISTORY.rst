@@ -6,6 +6,8 @@ Release History
 Upcoming
 ++++++++
 
+- Do not print an empty report if no tests marked 'flaky' were ran at all (#116).
+
 3.5.1 (2019-01-09)
 ++++++++++++++++++
 

@@ -19,6 +19,7 @@ class _FlakyPlugin(object):
         super(_FlakyPlugin, self).__init__()
         self._stream = StringIO()
         self._flaky_success_report = True
+        self._had_flaky_tests = False
 
     @property
     def stream(self):
@@ -180,6 +181,7 @@ class _FlakyPlugin(object):
             return False
 
         if self._has_flaky_attributes(test):
+            self._had_flaky_tests = True
             self._add_flaky_test_failure(test, err)
             should_handle = self._should_handle_test_error_or_failure(test)
             self._increment_flaky_attribute(test, FlakyNames.CURRENT_RUNS)
@@ -269,6 +271,7 @@ class _FlakyPlugin(object):
         need_reruns = self._should_handle_test_success(test)
 
         if self._has_flaky_attributes(test):
+            self._had_flaky_tests = True
             flaky = self._get_flaky_attributes(test)
             min_passes = flaky[FlakyNames.MIN_PASSES]
             passes = flaky[FlakyNames.CURRENT_PASSES] + 1
@@ -375,6 +378,10 @@ class _FlakyPlugin(object):
             `file`
         """
         value = self._stream.getvalue()
+
+        # Do not print report if there were no tests marked 'flaky' at all.
+        if not self._had_flaky_tests and not value:
+            return
 
         # If everything succeeded and --no-success-flaky-report is specified
         # don't print anything.
