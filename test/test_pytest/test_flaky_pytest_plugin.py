@@ -5,11 +5,12 @@ from io import StringIO
 from mock import Mock, patch
 # pylint:disable=import-error
 import pytest
+from _pytest.runner import CallInfo
 # pylint:enable=import-error
 from flaky import flaky
 from flaky import _flaky_plugin
 from flaky.flaky_pytest_plugin import (
-    CallInfo,
+    call_runtest_hook,
     FlakyPlugin,
     FlakyXdist,
     PLUGIN,
@@ -54,7 +55,7 @@ def mock_plugin_rerun(monkeypatch, flaky_plugin):
 
 
 @pytest.fixture(params=['instance', 'module', 'parent'])
-def flaky_test(request):
+def flaky_test(request, mock_config):
     def test_function():
         pass
     test_owner = Mock()
@@ -63,6 +64,7 @@ def flaky_test(request):
     kwargs = {request.param: test_owner}
     test = MockTestItem(**kwargs)
     setattr(test, 'owner', test_owner)
+    setattr(test, 'config', mock_config)
     return test
 
 
@@ -101,6 +103,17 @@ class MockTestItem(object):
 
     def runtest(self):
         pass
+
+
+class MockConfig(object):
+    def getvalue(self, key):
+        # pylint:disable=unused-argument,no-self-use
+        return False
+
+
+@pytest.fixture
+def mock_config():
+    return MockConfig()
 
 
 class MockFlakyCallInfo(CallInfo):
@@ -226,7 +239,7 @@ def test_flaky_plugin_raises_errors_in_fixture_setup(
     flaky_test.ihook = Mock()
     flaky_test.ihook.pytest_runtest_setup = error_raising_setup_function
     flaky_plugin._call_infos[flaky_test] = {}  # pylint:disable=protected-access
-    call_info = flaky_plugin.call_runtest_hook(flaky_test, 'setup')
+    call_info = call_runtest_hook(flaky_test, 'setup')
     assert flaky_test.ran_setup
     assert string_io.getvalue() == mock_io.getvalue()
     assert call_info.excinfo.type is ZeroDivisionError

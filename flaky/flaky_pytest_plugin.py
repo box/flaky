@@ -2,7 +2,7 @@
 
 from __future__ import unicode_literals
 
-from _pytest.runner import CallInfo  # pylint:disable=import-error
+from _pytest.runner import call_runtest_hook  # pylint:disable=import-error
 
 from flaky._flaky_plugin import _FlakyPlugin
 from flaky.utils import ensure_unicode_string
@@ -126,7 +126,8 @@ class FlakyPlugin(_FlakyPlugin):
         :type log:
             `bool`
         """
-        call = self.call_runtest_hook(item, when, **kwds)
+        call = call_runtest_hook(item, when, **kwds)
+        self._call_infos[item][when] = call
         hook = item.ihook
         report = hook.pytest_runtest_makereport(item=item, call=call)
         # Start flaky modifications
@@ -288,26 +289,6 @@ class FlakyPlugin(_FlakyPlugin):
             if hasattr(item, 'parent') and hasattr(item.parent, 'obj'):
                 test_instance = item.parent.obj
         return test_instance
-
-    def call_runtest_hook(self, item, when, **kwds):
-        """
-        Monkey patched from the runner plugin. Responsible for running
-        the test. Had to be patched to pass additional info to the
-        CallInfo so the tests can be rerun if necessary.
-
-        :param item:
-            pytest wrapper for the test function to be run
-        :type item:
-            :class:`Function`
-        """
-        hookname = "pytest_runtest_" + when
-        ihook = getattr(item.ihook, hookname)
-        call_info = getattr(CallInfo, "from_call", CallInfo)(
-            lambda: ihook(item=item, **kwds),
-            when=when,
-        )
-        self._call_infos[item][when] = call_info
-        return call_info
 
     def add_success(self, item):
         """
