@@ -110,9 +110,9 @@ class MockConfig(object):
         # pylint:disable=unused-argument,no-self-use
         return False
 
-    def getoption(self, key):
+    def getoption(self, key, default):
         # pylint:disable=unused-argument,no-self-use
-        return False
+        return default
 
 
 @pytest.fixture
