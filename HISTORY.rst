@@ -6,6 +6,9 @@ Release History
 Upcoming
 ++++++++
 
+3.6.1 (2019-08-06)
+++++++++++++++++++
+
 **Bugfixes**
 - Reraise ``KeyboardInterrupt`` when running tests under pytest.
 
