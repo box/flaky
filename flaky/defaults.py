@@ -24,7 +24,7 @@ class FilterWrapper(object):
         return self._filter(*args, **kwargs)
 
 
-def default_flaky_attributes(max_runs=None, min_passes=None, rerun_filter=None):
+def default_flaky_attributes(max_runs=None, min_passes=None, early_passes=None, rerun_filter=None):
     """
     Returns the default flaky attributes to set on a flaky test.
 
@@ -49,6 +49,8 @@ def default_flaky_attributes(max_runs=None, min_passes=None, rerun_filter=None):
         max_runs = 2
     if min_passes is None:
         min_passes = 1
+    if early_passes is None:
+        early_passes = min_passes
     if min_passes <= 0:
         raise ValueError('min_passes must be positive')
     if max_runs < min_passes:
@@ -57,6 +59,7 @@ def default_flaky_attributes(max_runs=None, min_passes=None, rerun_filter=None):
     return {
         FlakyNames.MAX_RUNS: max_runs,
         FlakyNames.MIN_PASSES: min_passes,
+        FlakyNames.EARLY_PASSES: early_passes,
         FlakyNames.CURRENT_RUNS: 0,
         FlakyNames.CURRENT_PASSES: 0,
         FlakyNames.RERUN_FILTER: FilterWrapper(rerun_filter or _true),

@@ -577,7 +577,10 @@ class _FlakyPlugin(object):
         :rtype:
             `bool`
         """
-        return flaky[FlakyNames.CURRENT_PASSES] >= flaky[FlakyNames.MIN_PASSES]
+        passing_so_far = flaky[FlakyNames.CURRENT_PASSES] == flaky[FlakyNames.CURRENT_RUNS]
+        passed_first_n = passing_so_far >= flaky[FlakyNames.EARLY_PASSES]
+        passed_out_of_n = flaky[FlakyNames.CURRENT_PASSES] >= flaky[FlakyNames.MIN_PASSES]
+        return passed_first_n or passed_out_of_n
 
     @classmethod
     def _get_test_callable(cls, test):
@@ -612,7 +615,7 @@ class _FlakyPlugin(object):
         raise NotImplementedError  # pragma: no cover
 
     @classmethod
-    def _make_test_flaky(cls, test, max_runs=None, min_passes=None, rerun_filter=None):
+    def _make_test_flaky(cls, test, max_runs=None, min_passes=None, early_passes=None, rerun_filter=None):
         """
         Make a given test flaky.
 
@@ -644,6 +647,6 @@ class _FlakyPlugin(object):
         :type rerun_filter:
             `callable`
         """
-        attrib_dict = defaults.default_flaky_attributes(max_runs, min_passes, rerun_filter)
+        attrib_dict = defaults.default_flaky_attributes(max_runs, min_passes, early_passes, rerun_filter)
         for attr, value in attrib_dict.items():
             cls._set_flaky_attribute(test, attr, value)

@@ -12,6 +12,7 @@ class FlakyNames(object):
     CURRENT_PASSES = '_flaky_current_passes'
     MAX_RUNS = '_flaky_max_runs'
     MIN_PASSES = '_flaky_min_passes'
+    EARLY_PASSES = '_flaky_early_passes'
     RERUN_FILTER = '_flaky_rerun_filter'
 
     def items(self):
@@ -21,6 +22,7 @@ class FlakyNames(object):
             self.CURRENT_RUNS,
             self.MAX_RUNS,
             self.MIN_PASSES,
+            self.EARLY_PASSES,
             self.RERUN_FILTER,
         )
 
