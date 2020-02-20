@@ -6,6 +6,30 @@ Release History
 Upcoming
 ++++++++
 
+3.6.1 (2019-08-06)
+++++++++++++++++++
+
+**Bugfixes**
+- Reraise ``KeyboardInterrupt`` when running tests under pytest.
+
+
+3.6.0 (2019-06-25)
+++++++++++++++++++
+
+- Do not print an empty report if no tests marked 'flaky' were run at all (#116).
+  NOTE: This change could be breaking if you relied on the flaky report being printed.
+
+3.5.3 (2019-01-16)
+++++++++++++++++++
+
+- Add rerun_filter parameter to _make_test_flaky
+
+3.5.2 (2019-01-10)
+++++++++++++++++++
+
+**Bugfixes**
+- Fall back to old pytest marker API for older pytest version (``get_marker`` vs ``iter_markers``).
+
 3.5.1 (2019-01-09)
 ++++++++++++++++++
 

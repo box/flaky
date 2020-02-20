@@ -99,7 +99,7 @@ after those failures, you can specify a filter function that can tell flaky to f
     def test_something_else():
         raise ProductCrashedError
 
-Flaky will run `test_something` twice, but will only run `test_something_else` once.
+Flaky will run ``test_something`` twice, but will only run ``test_something_else`` once.
 
 It can also be used to incur a delay between test retries:
 
@@ -171,7 +171,7 @@ Flaky is tested with the following test runners and options:
 
 - Nosetests. Doctests cannot be marked flaky.
 
-- Py.test. Works with `pytest-xdist` but not with the `--boxed` option. Doctests cannot be marked flaky.
+- Py.test. Works with ``pytest-xdist`` but not with the ``--boxed`` option. Doctests cannot be marked flaky.
 
 
 Contributing
