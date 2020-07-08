@@ -1,7 +1,7 @@
 flaky
 =====
 
-.. image:: http://opensource.box.com/badges/active.svg
+.. image:: http://opensource.box.com/badges/stable.svg
     :target: http://opensource.box.com/badges
 
 .. image:: https://travis-ci.org/box/flaky.svg?branch=master
