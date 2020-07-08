@@ -46,7 +46,9 @@ class FlakyPlugin(_FlakyPlugin):
     min_passes = None
     config = None
     _call_infos = {}
+    _PYTEST_WHEN_SETUP = 'setup'
     _PYTEST_WHEN_CALL = 'call'
+    _PYTEST_WHENS = (_PYTEST_WHEN_SETUP, _PYTEST_WHEN_CALL)
     _PYTEST_OUTCOME_PASSED = 'passed'
     _PYTEST_OUTCOME_FAILED = 'failed'
     _PYTEST_EMPTY_STATUS = ('', '', '')
@@ -90,17 +92,24 @@ class FlakyPlugin(_FlakyPlugin):
             self.runner.call_and_report = self.call_and_report
             while should_rerun:
                 self.runner.pytest_runtest_protocol(item, nextitem)
-                call_info = self._call_infos.get(item, {}).get(self._PYTEST_WHEN_CALL, None)
+                call_info = None
+                excinfo = None
+                for when in self._PYTEST_WHENS:
+                    call_info = self._call_infos.get(item, {}).get(when, None)
+                    excinfo = getattr(call_info, 'excinfo', None)
+                    if excinfo is not None:
+                        break
+
                 if call_info is None:
                     return False
-                passed = call_info.excinfo is None
+                passed = excinfo is None
                 if passed:
                     should_rerun = self.add_success(item)
                 else:
-                    skipped = call_info.excinfo.typename == 'Skipped'
-                    should_rerun = not skipped and self.add_failure(item, call_info.excinfo)
+                    skipped = excinfo.typename == 'Skipped'
+                    should_rerun = not skipped and self.add_failure(item, excinfo)
                     if not should_rerun:
-                        item.excinfo = call_info.excinfo
+                        item.excinfo = excinfo
         finally:
             self.runner.call_and_report = original_call_and_report
             del self._call_infos[item]
@@ -132,12 +141,12 @@ class FlakyPlugin(_FlakyPlugin):
         report = hook.pytest_runtest_makereport(item=item, call=call)
         # Start flaky modifications
         # only retry on call, not setup or teardown
-        if report.when == self._PYTEST_WHEN_CALL:
+        if report.when in self._PYTEST_WHENS:
             if report.outcome == self._PYTEST_OUTCOME_PASSED:
                 if self._should_handle_test_success(item):
                     log = False
             elif report.outcome == self._PYTEST_OUTCOME_FAILED:
-                err, name = self._get_test_name_and_err(item)
+                err, name = self._get_test_name_and_err(item, when)
                 if self._will_handle_test_error_or_failure(item, name, err):
                     log = False
         # End flaky modifications
@@ -147,7 +156,7 @@ class FlakyPlugin(_FlakyPlugin):
             hook.pytest_exception_interact(node=item, call=call, report=report)
         return report
 
-    def _get_test_name_and_err(self, item):
+    def _get_test_name_and_err(self, item, when):
         """
         Get the test name and error tuple from a test item.
 
@@ -161,7 +170,7 @@ class FlakyPlugin(_FlakyPlugin):
             ((`type`, :class:`Exception`, :class:`Traceback`) or (None, None, None), `unicode`)
         """
         name = self._get_test_callable_name(item)
-        call_info = self._call_infos.get(item, {}).get(self._PYTEST_WHEN_CALL, None)
+        call_info = self._call_infos.get(item, {}).get(when, None)
         if call_info is not None and call_info.excinfo:
             err = (call_info.excinfo.type, call_info.excinfo.value, call_info.excinfo.tb)
         else:
