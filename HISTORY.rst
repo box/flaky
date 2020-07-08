@@ -6,6 +6,11 @@ Release History
 Upcoming
 ++++++++
 
+3.7.0 (2020-07-07)
+++++++++++++++++++
+
+- Flaky now retries tests which fail during setup.
+
 3.6.1 (2019-08-06)
 ++++++++++++++++++
 
