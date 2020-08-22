@@ -1,7 +1,3 @@
-# coding: utf-8
-
-from __future__ import unicode_literals
-
 from unittest import TestCase, skip
 
 from genty import genty, genty_dataset

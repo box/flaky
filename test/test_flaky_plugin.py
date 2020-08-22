@@ -1,7 +1,3 @@
-# coding: utf-8
-
-from __future__ import unicode_literals
-
 from io import StringIO
 from unittest import TestCase
 
@@ -14,7 +10,7 @@ from genty import genty, genty_dataset
 @genty
 class TestFlakyPlugin(TestCase):
     def setUp(self):
-        super(TestFlakyPlugin, self).setUp()
+        super().setUp()
         self._flaky_plugin = _FlakyPlugin()
 
     def test_flaky_plugin_handles_non_ascii_byte_string_in_exception(self):

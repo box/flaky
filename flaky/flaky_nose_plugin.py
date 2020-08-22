@@ -1,7 +1,3 @@
-# coding: utf-8
-
-from __future__ import unicode_literals
-
 import logging
 from optparse import OptionGroup
 import os
@@ -20,7 +16,7 @@ class FlakyPlugin(_FlakyPlugin, Plugin):
     name = 'flaky'
 
     def __init__(self):
-        super(FlakyPlugin, self).__init__()
+        super().__init__()
         self._logger = logging.getLogger('nose.plugins.flaky')
         self._flaky_result = None
         self._nose_result = None
@@ -38,7 +34,7 @@ class FlakyPlugin(_FlakyPlugin, Plugin):
         Add options to the nose argument parser.
         """
         # pylint:disable=dangerous-default-value
-        super(FlakyPlugin, self).options(parser, env=env)
+        super().options(parser, env=env)
         self.add_report_option(parser.add_option)
         group = OptionGroup(
             parser, "Force flaky", "Force all tests to be flaky.")
@@ -68,7 +64,7 @@ class FlakyPlugin(_FlakyPlugin, Plugin):
 
     def configure(self, options, conf):
         """Base class override."""
-        super(FlakyPlugin, self).configure(options, conf)
+        super().configure(options, conf)
         if not self.enabled:
             return
         is_multiprocess = int(getattr(options, 'multiprocess_workers', 0)) > 0

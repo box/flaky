@@ -1,7 +1,3 @@
-# coding: utf-8
-
-from __future__ import unicode_literals
-
 from io import StringIO
 from unittest import TestCase
 
@@ -14,7 +10,7 @@ class TestMultiprocessStringIO(TestCase):
     _unicode_string_non_ascii = 'ńőń ȁŝćȉȉ ŝƭȕƒƒ'
 
     def setUp(self):
-        super(TestMultiprocessStringIO, self).setUp()
+        super().setUp()
         from flaky.multiprocess_string_io import MultiprocessingStringIO
         self._string_io = StringIO()
         self._mp_string_io = MultiprocessingStringIO()

@@ -1,7 +1,3 @@
-# coding: utf-8
-
-from __future__ import unicode_literals
-
 from unittest import TestCase, skip
 
 # pylint:disable=import-error
@@ -32,7 +28,7 @@ def test_something_good_with_failing_setup_fixture():
     assert True
 
 
-class TestExample(object):
+class TestExample:
     _threshold = -1
 
     def test_non_flaky_thing(self):
@@ -78,7 +74,7 @@ class TestExample(object):
 
 
 @flaky
-class TestExampleFlakyTests(object):
+class TestExampleFlakyTests:
     _threshold = -1
 
     @staticmethod
@@ -110,7 +106,7 @@ class TestFlakySubclass(TestExampleFlakyTestCase):
 
 
 @pytest.mark.flaky
-class TestMarkedClass(object):
+class TestMarkedClass:
     _threshold = -1
 
     @staticmethod
@@ -149,7 +145,7 @@ def _rerun_filter(err, name, test, plugin):
     return issubclass(err[0], AssertionError)
 
 
-class TestExampleRerunFilter(object):
+class TestExampleRerunFilter:
     _threshold = -1
 
     @flaky(rerun_filter=_rerun_filter)

@@ -1,6 +1,3 @@
-# coding: utf-8
-
-from __future__ import unicode_literals
 from flaky import flaky
 
 
@@ -10,7 +7,7 @@ def test_something_flaky(dummy_list):
     assert len(dummy_list) > 1
 
 
-class TestExample(object):
+class TestExample:
     _threshold = -1
 
     @flaky
