@@ -1,7 +1,6 @@
 from _pytest.runner import call_runtest_hook  # pylint:disable=import-error
 
 from flaky._flaky_plugin import _FlakyPlugin
-from flaky.utils import ensure_unicode_string
 
 
 def _get_worker_output(item):
@@ -389,14 +388,14 @@ class FlakyPlugin(_FlakyPlugin):
         printed by the plugin's report method.
         """
         self._stream.writelines([
-            ensure_unicode_string(test_callable_name),
+            str(test_callable_name),
             message,
             '\n\t',
-            ensure_unicode_string(err[0]),
+            str(err[0]),
             '\n\t',
-            ensure_unicode_string(err[1]),
+            str(err[1]),
             '\n\t',
-            ensure_unicode_string(err[2]),
+            str(err[2]),
             '\n',
         ])
 

@@ -13,7 +13,6 @@ from flaky.flaky_pytest_plugin import (
     PLUGIN,
 )
 from flaky.names import FlakyNames
-from flaky.utils import unicode_type
 
 
 @pytest.fixture
@@ -410,11 +409,11 @@ class TestFlakyPytestPlugin:
             self._test_method_name,
             ' failed and was not selected for rerun.',
             '\n\t',
-            unicode_type(mock_error.type),
+            str(mock_error.type),
             '\n\t',
-            unicode_type(mock_error.value),
+            str(mock_error.value),
             '\n\t',
-            unicode_type(mock_error.traceback),
+            str(mock_error.traceback),
             '\n',
         ])
         assert string_io.getvalue() == mock_io.getvalue()
@@ -540,11 +539,11 @@ class TestFlakyPytestPlugin:
                     max_runs - current_runs - 1, max_runs
                 ),
                 '\n\t',
-                unicode_type(mock_error.type),
+                str(mock_error.type),
                 '\n\t',
-                unicode_type(mock_error.value),
+                str(mock_error.value),
                 '\n\t',
-                unicode_type(mock_error.traceback),
+                str(mock_error.traceback),
                 '\n',
             ])
         else:
@@ -556,11 +555,11 @@ class TestFlakyPytestPlugin:
                     min_passes
                 ),
                 '\n\t',
-                unicode_type(mock_error.type),
+                str(mock_error.type),
                 '\n\t',
-                unicode_type(mock_error.value),
+                str(mock_error.value),
                 '\n\t',
-                unicode_type(mock_error.traceback),
+                str(mock_error.traceback),
                 '\n',
             ])
         assert stream.getvalue() == mock_stream.getvalue()

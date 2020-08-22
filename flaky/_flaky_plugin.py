@@ -3,7 +3,6 @@ from traceback import format_exception
 
 from flaky import defaults
 from flaky.names import FlakyNames
-from flaky.utils import ensure_unicode_string
 
 
 class _FlakyPlugin:
@@ -38,9 +37,9 @@ class _FlakyPlugin:
         """
         formatted_exception_info = ''.join(format_exception(*err)).replace('\n', '\n\t').rstrip()
         self._stream.writelines([
-            ensure_unicode_string(test_callable_name),
-            ensure_unicode_string(message),
-            ensure_unicode_string(formatted_exception_info),
+            str(test_callable_name),
+            str(message),
+            str(formatted_exception_info),
             '\n',
         ])
 
@@ -276,7 +275,7 @@ class _FlakyPlugin:
 
             if self._flaky_success_report:
                 self._stream.writelines([
-                    ensure_unicode_string(name),
+                    str(name),
                     ' passed {} out of the required {} times. '.format(
                         passes,
                         min_passes,
