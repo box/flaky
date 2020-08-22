@@ -1,6 +1,3 @@
-# -*- coding: utf-8 -*-
-
-from __future__ import unicode_literals
 from os.path import dirname, join
 import sys
 from setuptools.command.test import test as TestCommand

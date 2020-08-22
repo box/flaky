@@ -1,7 +1,3 @@
-# coding: utf-8
-
-from __future__ import unicode_literals
-
 from io import StringIO
 from traceback import format_exception
 
@@ -10,13 +6,13 @@ from flaky.names import FlakyNames
 from flaky.utils import ensure_unicode_string
 
 
-class _FlakyPlugin(object):
+class _FlakyPlugin:
     _retry_failure_message = ' failed ({0} runs remaining out of {1}).'
     _failure_message = ' failed; it passed {0} out of the required {1} times.'
     _not_rerun_message = ' failed and was not selected for rerun.'
 
     def __init__(self):
-        super(_FlakyPlugin, self).__init__()
+        super().__init__()
         self._stream = StringIO()
         self._flaky_success_report = True
         self._had_flaky_tests = False

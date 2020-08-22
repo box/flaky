@@ -1,12 +1,8 @@
-# coding: utf-8
-
-from __future__ import unicode_literals
-
 from unittest import TestCase
 
 from genty import genty, genty_dataset
-import mock
-from mock import MagicMock, Mock, patch
+from unittest import mock
+from unittest.mock import MagicMock, Mock, patch
 
 from flaky import defaults, flaky_nose_plugin
 from flaky.flaky_decorator import flaky
@@ -16,7 +12,7 @@ from flaky.names import FlakyNames
 @genty
 class TestFlakyNosePlugin(TestCase):
     def setUp(self):
-        super(TestFlakyNosePlugin, self).setUp()
+        super().setUp()
 
         self._mock_test_result = MagicMock()
         self._mock_stream = None

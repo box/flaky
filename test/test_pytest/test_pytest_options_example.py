@@ -1,7 +1,3 @@
-# coding: utf-8
-
-from __future__ import unicode_literals
-
 # This is a series of tests that do not use the flaky decorator; the flaky
 # behavior is intended to be enabled with the --force-flaky option on the
 # command line.
@@ -15,7 +11,7 @@ def test_something_flaky(dummy_list=[]):
     assert len(dummy_list) > 1
 
 
-class TestExample(object):
+class TestExample:
     _threshold = -2
 
     @staticmethod
@@ -32,7 +28,7 @@ class TestExample(object):
 
 
 @flaky(3, 1)
-class TestExampleFlakyTests(object):
+class TestExampleFlakyTests:
     _threshold = -2
 
     @staticmethod

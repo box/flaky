@@ -1,7 +1,3 @@
-# coding: utf-8
-
-from __future__ import unicode_literals
-
 # pylint:disable=invalid-name
 try:
     unicode_type = unicode

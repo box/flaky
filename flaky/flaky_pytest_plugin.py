@@ -1,7 +1,3 @@
-# coding: utf-8
-
-from __future__ import unicode_literals
-
 from _pytest.runner import call_runtest_hook  # pylint:disable=import-error
 
 from flaky._flaky_plugin import _FlakyPlugin
@@ -17,10 +13,10 @@ def _get_worker_output(item):
     return worker_output
 
 
-class FlakyXdist(object):
+class FlakyXdist:
 
     def __init__(self, plugin):
-        super(FlakyXdist, self).__init__()
+        super().__init__()
         self._plugin = plugin
 
     def pytest_testnodedown(self, node, error):

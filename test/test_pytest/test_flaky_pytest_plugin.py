@@ -1,8 +1,5 @@
-# coding: utf-8
-
-from __future__ import unicode_literals
 from io import StringIO
-from mock import Mock, patch
+from unittest.mock import Mock, patch
 # pylint:disable=import-error
 import pytest
 from _pytest.runner import CallInfo
@@ -78,16 +75,16 @@ def mock_error():
     return MockError()
 
 
-class MockError(object):
+class MockError:
     def __init__(self):
-        super(MockError, self).__init__()
+        super().__init__()
         self.type = Mock()
         self.value = Mock()
         self.value.message = 'failed'
         self.traceback = Mock()
 
 
-class MockTestItem(object):
+class MockTestItem:
     name = 'test_method'
     instance = None
     module = None
@@ -105,7 +102,7 @@ class MockTestItem(object):
         pass
 
 
-class MockConfig(object):
+class MockConfig:
     def getvalue(self, key):
         # pylint:disable=unused-argument,no-self-use
         return False
@@ -249,7 +246,7 @@ def test_flaky_plugin_raises_errors_in_fixture_setup(
     assert call_info.excinfo.type is ZeroDivisionError
 
 
-class TestFlakyPytestPlugin(object):
+class TestFlakyPytestPlugin:
     _test_method_name = 'test_method'
 
     def test_flaky_plugin_handles_success(
