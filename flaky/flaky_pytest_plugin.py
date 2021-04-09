@@ -1,4 +1,4 @@
-from _pytest.runner import call_runtest_hook  # pylint:disable=import-error
+from _pytest import runner  # pylint:disable=import-error
 
 from flaky._flaky_plugin import _FlakyPlugin
 
@@ -130,7 +130,7 @@ class FlakyPlugin(_FlakyPlugin):
         :type log:
             `bool`
         """
-        call = call_runtest_hook(item, when, **kwds)
+        call = runner.call_runtest_hook(item, when, **kwds)
         self._call_infos[item][when] = call
         hook = item.ihook
         report = hook.pytest_runtest_makereport(item=item, call=call)
