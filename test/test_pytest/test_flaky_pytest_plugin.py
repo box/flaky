@@ -7,7 +7,7 @@ from _pytest.runner import CallInfo
 from flaky import flaky
 from flaky import _flaky_plugin
 from flaky.flaky_pytest_plugin import (
-    call_runtest_hook,
+    runner,
     FlakyPlugin,
     FlakyXdist,
     PLUGIN,
@@ -239,7 +239,7 @@ def test_flaky_plugin_raises_errors_in_fixture_setup(
     flaky_test.ihook = Mock()
     flaky_test.ihook.pytest_runtest_setup = error_raising_setup_function
     flaky_plugin._call_infos[flaky_test] = {}  # pylint:disable=protected-access
-    call_info = call_runtest_hook(flaky_test, 'setup')
+    call_info = runner.call_runtest_hook(flaky_test, 'setup')
     assert flaky_test.ran_setup
     assert string_io.getvalue() == mock_io.getvalue()
     assert call_info.excinfo.type is ZeroDivisionError
