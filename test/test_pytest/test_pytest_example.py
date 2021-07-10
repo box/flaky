@@ -59,6 +59,17 @@ class TestExample:
         TestExample._threshold += 1
         assert TestExample._threshold != 1
 
+    @pytest.mark.asyncio
+    @flaky(3, 2)
+    async def test_flaky_asyncio_thing_that_fails_then_succeeds(self):
+        """
+        Flaky will run this test 3 times.
+        It will fail once and then succeed twice.
+        """
+        # pylint:disable=no-self-use
+        TestExample._threshold += 1
+        assert TestExample._threshold >= 1
+
     @flaky(2, 2)
     def test_flaky_thing_that_always_passes(self):
         """Flaky will run this test twice.  Both will succeed."""

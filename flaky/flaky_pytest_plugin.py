@@ -1,3 +1,5 @@
+import asyncio
+
 from _pytest import runner  # pylint:disable=import-error
 
 from flaky._flaky_plugin import _FlakyPlugin
@@ -130,6 +132,7 @@ class FlakyPlugin(_FlakyPlugin):
         :type log:
             `bool`
         """
+        self._reset_test_event_loop(item)
         call = runner.call_runtest_hook(item, when, **kwds)
         self._call_infos[item][when] = call
         hook = item.ihook
@@ -398,6 +401,12 @@ class FlakyPlugin(_FlakyPlugin):
             str(err[2]),
             '\n',
         ])
+
+    @staticmethod
+    def _reset_test_event_loop(item):
+        if 'asyncio' in item.keywords and 'event_loop' in item.funcargs:
+            # always use new loops for every run
+            item.funcargs['event_loop'] = asyncio.new_event_loop()
 
 
 PLUGIN = FlakyPlugin()
