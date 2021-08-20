@@ -6,6 +6,8 @@ Release History
 Upcoming
 ++++++++
 
+- nose support has been removed.
+
 3.7.0 (2020-07-07)
 ++++++++++++++++++
 

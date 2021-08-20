@@ -2,7 +2,6 @@
 coveralls
 genty
 mock
-nose
 ordereddict
 pycodestyle
 pylint

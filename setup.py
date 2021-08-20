@@ -52,7 +52,7 @@ def main():
     setup(
         name='flaky',
         version='3.7.0',
-        description='Plugin for nose or pytest that automatically reruns flaky tests.',
+        description='Plugin for pytest that automatically reruns flaky tests.',
         long_description=open(join(base_dir, 'README.rst')).read(),
         author='Box',
         author_email='oss@box.com',
@@ -64,14 +64,11 @@ def main():
         cmdclass={'test': Tox},
         zip_safe=False,
         entry_points={
-            'nose.plugins.0.10': [
-                'flaky = flaky.flaky_nose_plugin:FlakyPlugin'
-            ],
             'pytest11': [
                 'flaky = flaky.flaky_pytest_plugin'
             ]
         },
-        keywords='nose pytest plugin flaky tests rerun retry',
+        keywords='pytest plugin flaky tests rerun retry',
         python_requires='>=3.5',
         classifiers=CLASSIFIERS,
     )
