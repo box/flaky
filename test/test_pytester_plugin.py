@@ -1,8 +1,15 @@
 pytest_plugins = 'pytester'  # pylint:disable=invalid-name
 
 TESTSUITE = """
-def test_a_thing():
-    pass
+import pytest
+
+
+@pytest.fixture
+def my_fixture():
+    return 42
+
+def test_a_thing(my_fixture):
+    assert my_fixture == 42
 
 """
 

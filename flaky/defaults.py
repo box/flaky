@@ -9,19 +9,6 @@ def _true(*args):
     return True
 
 
-class FilterWrapper:
-    """
-    Filter function wrapper. Expected to be called as though it's a filter
-    function. Since @flaky adds attributes to a decorated class, Python wants
-    to turn a bare function into an unbound method, which is not what we want.
-    """
-    def __init__(self, rerun_filter):
-        self._filter = rerun_filter
-
-    def __call__(self, *args, **kwargs):
-        return self._filter(*args, **kwargs)
-
-
 def default_flaky_attributes(max_runs=None, min_passes=None, rerun_filter=None):
     """
     Returns the default flaky attributes to set on a flaky test.
@@ -57,5 +44,5 @@ def default_flaky_attributes(max_runs=None, min_passes=None, rerun_filter=None):
         FlakyNames.MIN_PASSES: min_passes,
         FlakyNames.CURRENT_RUNS: 0,
         FlakyNames.CURRENT_PASSES: 0,
-        FlakyNames.RERUN_FILTER: FilterWrapper(rerun_filter or _true),
+        FlakyNames.RERUN_FILTER: rerun_filter or _true,
     }

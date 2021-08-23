@@ -6,6 +6,11 @@ Release History
 Upcoming
 ++++++++
 
+4.0.0 (2021-08-18)
+++++++++++++++++++
+
+- Flaky no longer supports nosetests.
+
 3.7.0 (2020-07-07)
 ++++++++++++++++++
 

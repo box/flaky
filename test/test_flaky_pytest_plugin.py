@@ -4,13 +4,11 @@ from unittest.mock import Mock, patch
 import pytest
 from _pytest.runner import CallInfo
 # pylint:enable=import-error
-from flaky import flaky
-from flaky import _flaky_plugin
+from flaky import flaky_plugin as plugin_module, flaky_pytest_plugin
 from flaky.flaky_pytest_plugin import (
     runner,
     FlakyPlugin,
     FlakyXdist,
-    PLUGIN,
 )
 from flaky.names import FlakyNames
 
@@ -21,7 +19,7 @@ def mock_io(monkeypatch):
 
     def string_io():
         return mock_string_io
-    monkeypatch.setattr(_flaky_plugin, 'StringIO', string_io)
+    monkeypatch.setattr(plugin_module, 'StringIO', string_io)
     return mock_string_io
 
 
@@ -34,20 +32,6 @@ def string_io():
 def flaky_plugin(mock_io):
     # pylint:disable=unused-argument
     return FlakyPlugin()
-
-
-@pytest.fixture
-def mock_plugin_rerun(monkeypatch, flaky_plugin):
-    calls = []
-
-    def rerun_test(test):
-        calls.append(test)
-    monkeypatch.setattr(flaky_plugin, '_mark_test_for_rerun', rerun_test)
-
-    def get_calls():
-        return calls
-
-    return get_calls
 
 
 @pytest.fixture(params=['instance', 'module', 'parent'])
@@ -101,7 +85,16 @@ class MockTestItem:
         pass
 
 
+class MockPluginManager:
+    plugins = {}
+
+    def getplugin(self, name):
+        return self.plugins.get(name)
+
+
 class MockConfig:
+    pluginmanager = MockPluginManager()
+
     def getvalue(self, key):
         # pylint:disable=unused-argument,no-self-use
         return False
@@ -124,7 +117,9 @@ class MockFlakyCallInfo(CallInfo):
         self._item = item
 
 
-def test_flaky_plugin_report(flaky_plugin, mock_io, string_io):
+def test_flaky_plugin_report(flaky_plugin, mock_io, string_io, mock_config):
+    mock_config.pluginmanager.plugins['flaky.base'] = flaky_plugin
+
     flaky_report = 'Flaky tests passed; others failed. ' \
                    'No more tests; that ship has sailed.'
     expected_string_io = StringIO()
@@ -132,7 +127,7 @@ def test_flaky_plugin_report(flaky_plugin, mock_io, string_io):
     expected_string_io.write(flaky_report)
     expected_string_io.write('\n===End Flaky Test Report===\n')
     mock_io.write(flaky_report)
-    flaky_plugin.pytest_terminal_summary(string_io)
+    flaky_pytest_plugin.pytest_terminal_summary(string_io, mock_config)
     assert string_io.getvalue() == expected_string_io.getvalue()
 
 
@@ -154,9 +149,10 @@ def mock_xdist_error(request):
 def test_flaky_xdist_nodedown(
         mock_xdist_node_workeroutput,
         assign_workeroutput,
-        mock_xdist_error
+        mock_xdist_error,
+        flaky_plugin,
 ):
-    flaky_xdist = FlakyXdist(PLUGIN)
+    flaky_xdist = FlakyXdist(flaky_plugin)
     node = Mock()
     if assign_workeroutput:
         node.workeroutput = mock_xdist_node_workeroutput
@@ -164,7 +160,7 @@ def test_flaky_xdist_nodedown(
         delattr(node, 'workeroutput')
         delattr(node, 'slaveoutput')
     mock_stream = Mock(StringIO)
-    with patch.object(PLUGIN, '_stream', mock_stream):
+    with patch.object(flaky_plugin, '_stream', mock_stream):
         flaky_xdist.pytest_testnodedown(node, mock_xdist_error)
     if assign_workeroutput and 'flaky_report' in mock_xdist_node_workeroutput:
         mock_stream.write.assert_called_once_with(
@@ -189,14 +185,19 @@ def test_flaky_session_finish_copies_flaky_report(
         initial_report,
         stream_report,
         expected_report,
+        flaky_plugin,
 ):
-    PLUGIN.stream.seek(0)
-    PLUGIN.stream.truncate()
-    PLUGIN.stream.write(stream_report)
-    PLUGIN.config = Mock()
-    PLUGIN.config.workeroutput = {'flaky_report': initial_report}
-    PLUGIN.pytest_sessionfinish()
-    assert PLUGIN.config.workeroutput['flaky_report'] == expected_report
+    flaky_plugin.stream.seek(0)
+    flaky_plugin.stream.truncate()
+    flaky_plugin.stream.write(stream_report)
+    flaky_plugin.config = Mock()
+    flaky_plugin.config.workeroutput = {'flaky_report': initial_report}
+    session = Mock()
+    session.config = flaky_plugin.config
+    session.config.pluginmanager = MockPluginManager()
+    session.config.pluginmanager.plugins['flaky.base'] = flaky_plugin
+    flaky_pytest_plugin.pytest_sessionfinish(session)
+    assert flaky_plugin.config.workeroutput['flaky_report'] == expected_report
 
 
 def test_flaky_plugin_can_suppress_success_report(
@@ -206,7 +207,7 @@ def test_flaky_plugin_can_suppress_success_report(
     string_io,
     mock_io,
 ):
-    flaky()(flaky_test)
+    flaky_plugin.make_test_flaky(flaky_test)
     # pylint:disable=protected-access
     flaky_plugin._flaky_success_report = False
     # pylint:enable=protected-access
@@ -235,10 +236,10 @@ def test_flaky_plugin_raises_errors_in_fixture_setup(
         item.ran_setup = True
         return 5 / 0
 
-    flaky()(flaky_test)
+    flaky_plugin.make_test_flaky(flaky_test)
     flaky_test.ihook = Mock()
     flaky_test.ihook.pytest_runtest_setup = error_raising_setup_function
-    flaky_plugin._call_infos[flaky_test] = {}  # pylint:disable=protected-access
+    flaky_plugin.call_infos[flaky_test] = {}
     call_info = runner.call_runtest_hook(flaky_test, 'setup')
     assert flaky_test.ran_setup
     assert string_io.getvalue() == mock_io.getvalue()
@@ -271,7 +272,6 @@ class TestFlakyPytestPlugin:
         call_info,
         string_io,
         mock_io,
-        mock_plugin_rerun,
     ):
         self._test_flaky_plugin_handles_success(
             flaky_test,
@@ -281,7 +281,6 @@ class TestFlakyPytestPlugin:
             mock_io,
             min_passes=2,
         )
-        assert mock_plugin_rerun()[0] == flaky_test
 
     def test_flaky_plugin_ignores_success_for_non_flaky_test(
         self,
@@ -313,7 +312,6 @@ class TestFlakyPytestPlugin:
         string_io,
         mock_io,
         mock_error,
-        mock_plugin_rerun,
     ):
         self._test_flaky_plugin_handles_failure(
             flaky_test,
@@ -323,7 +321,6 @@ class TestFlakyPytestPlugin:
             mock_io,
             mock_error,
         )
-        assert mock_plugin_rerun()[0] == flaky_test
 
     def test_flaky_plugin_handles_failure_for_no_more_retries(
         self,
@@ -352,7 +349,6 @@ class TestFlakyPytestPlugin:
         string_io,
         mock_io,
         mock_error,
-        mock_plugin_rerun,
     ):
         self._test_flaky_plugin_handles_failure(
             flaky_test,
@@ -363,14 +359,14 @@ class TestFlakyPytestPlugin:
             mock_error,
             current_errors=[None],
         )
-        assert mock_plugin_rerun()[0] == flaky_test
 
+    @staticmethod
     def _assert_flaky_attributes_contains(
-        self,
         expected_flaky_attributes,
         test,
+        flaky_plugin,
     ):
-        actual_flaky_attributes = self._get_flaky_attributes(test)
+        actual_flaky_attributes = flaky_plugin.get_flaky_attributes(test)
         assert all(
             item in actual_flaky_attributes.items()
             for item in expected_flaky_attributes.items()
@@ -384,7 +380,6 @@ class TestFlakyPytestPlugin:
             string_io,
             mock_io,
             mock_error,
-            mock_plugin_rerun,
     ):
         err_tuple = (mock_error.type, mock_error.value, mock_error.traceback)
 
@@ -395,15 +390,14 @@ class TestFlakyPytestPlugin:
             assert plugin is flaky_plugin
             return False
 
-        flaky(rerun_filter=rerun_filter)(flaky_test)
+        flaky_plugin.make_test_flaky(flaky_test, rerun_filter=rerun_filter)
         call_info.when = 'call'
 
         actual_plugin_handles_failure = flaky_plugin.add_failure(
             flaky_test,
             mock_error,
         )
-        assert actual_plugin_handles_failure is False
-        assert not mock_plugin_rerun()
+        assert not actual_plugin_handles_failure
 
         string_io.writelines([
             self._test_method_name,
@@ -435,7 +429,7 @@ class TestFlakyPytestPlugin:
         max_runs=2,
         min_passes=1,
     ):
-        flaky(max_runs, min_passes)(test)
+        plugin.make_test_flaky(test, max_runs, min_passes)
         setattr(
             test,
             FlakyNames.CURRENT_PASSES,
@@ -461,6 +455,7 @@ class TestFlakyPytestPlugin:
                 FlakyNames.CURRENT_RUNS: current_runs + 1,
             },
             test,
+            plugin,
         )
         stream.writelines([
             self._test_method_name,
@@ -493,22 +488,22 @@ class TestFlakyPytestPlugin:
         min_passes=1,
         rerun_filter=None,
     ):
-        flaky(max_runs, min_passes, rerun_filter)(test)
+        plugin.make_test_flaky(test, max_runs, min_passes, rerun_filter)
         if current_errors is None:
             current_errors = [None]
         else:
             current_errors.append(None)
-        setattr(
+        plugin.set_flaky_attribute(
             test,
             FlakyNames.CURRENT_ERRORS,
             current_errors,
         )
-        setattr(
+        plugin.set_flaky_attribute(
             test,
             FlakyNames.CURRENT_PASSES,
             current_passes,
         )
-        setattr(
+        plugin.set_flaky_attribute(
             test,
             FlakyNames.CURRENT_RUNS,
             current_runs,
@@ -531,6 +526,7 @@ class TestFlakyPytestPlugin:
                 FlakyNames.CURRENT_ERRORS: current_errors
             },
             test,
+            plugin,
         )
         if expected_plugin_handles_failure:
             stream.writelines([
@@ -564,13 +560,18 @@ class TestFlakyPytestPlugin:
             ])
         assert stream.getvalue() == mock_stream.getvalue()
 
+
+def test_flaky_raises_for_non_positive_min_passes(flaky_plugin):
     @staticmethod
-    def _get_flaky_attributes(test):
-        actual_flaky_attributes = {
-            attr: getattr(
-                test,
-                attr,
-                None,
-            ) for attr in FlakyNames()
-        }
-        return actual_flaky_attributes
+    def test_something():
+        pass
+    with pytest.raises(ValueError):
+        flaky_plugin.make_test_flaky(test_something, min_passes=0)
+
+
+def test_flaky_raises_for_max_runs_less_than_min_passes(flaky_plugin):
+    @staticmethod
+    def test_something():
+        pass
+    with pytest.raises(ValueError):
+        flaky_plugin.make_test_flaky(test_something, max_runs=2, min_passes=3)
