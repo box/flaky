@@ -3,7 +3,7 @@ from flaky.defaults import default_flaky_attributes
 
 def flaky(max_runs=None, min_passes=None, rerun_filter=None):
     """
-    Decorator used to mark a test as "flaky". When used in conjuction with
+    Decorator used to mark a test as "flaky". When used in conjunction with
     the flaky nosetests plugin, will cause the decorated test to be retried
     until min_passes successes are achieved out of up to max_runs test runs.
 
