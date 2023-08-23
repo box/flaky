@@ -16,7 +16,7 @@ jobs:
       - run: pip install --upgrade pip
       - run: pip install tox
       - run: tox -e ${{ matrix.job }}
-      - if: matrix.job == "coverage"
+      - if: matrix.job == 'coverage'
         run: coveralls
 
   tox:
