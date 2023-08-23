@@ -5,7 +5,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        job: [coverage, pycodestyle, pylint]
+        job: [coverage, pycodestyle, pylint, readme]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -17,7 +17,9 @@ jobs:
       - run: pip install tox
       - run: tox -e ${{ matrix.job }}
       - if: matrix.job == 'coverage'
-        run: coveralls
+        run: |
+          pip install coveralls
+          coveralls
 
   tox:
     strategy:
