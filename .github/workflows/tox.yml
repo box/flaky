@@ -16,10 +16,11 @@ jobs:
       - run: pip install --upgrade pip
       - run: pip install tox
       - run: tox -e ${{ matrix.job }}
-      - if: matrix.job == 'coverage'
-        run: |
-          pip install coveralls
-          coveralls
+      # TODO: Add coveralls token
+      #- if: matrix.job == 'coverage'
+      #  run: |
+      #    pip install coveralls
+      #    coveralls
 
   tox:
     strategy:
