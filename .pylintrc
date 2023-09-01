@@ -16,7 +16,8 @@
 
 # List of plugins (as comma separated values of python modules names) to load,
 # usually to register additional checkers.
-#load-plugins=
+load-plugins=pylint.extensions.no_self_use
+
 
 
 [MESSAGES CONTROL]
@@ -38,10 +39,8 @@
 
 # C0111 => Missing docstring
 # W0108 => unnecessary lambda
-# W0142 => Used * or ** magic
-# R0921 => Abstract class not referenced
 # R0205 => Useless object inheritence: codebase still supports 2.7
-disable=I, C0111, W0108, W0142, R0921, R0205
+disable=I, C0111, W0108, R0205
 
 
 [REPORTS]
@@ -54,7 +53,7 @@ output-format=text
 # Put messages in a separate file for each module / package specified on the
 # command line instead of printing them on stdout. Reports (if any) will be
 # written in a file name "pylint_global.[txt|html]".
-files-output=no
+# files-output=no
 
 # Tells whether to display a full report or only the messages
 reports=no
@@ -74,7 +73,7 @@ msg-template={module}:{line}:{column}: [{msg_id}({symbol}), {obj}] {msg}
 [BASIC]
 
 # List of builtins function names that should not be used, separated by a comma
-bad-functions=map,filter,apply,input
+# bad-functions=map,filter,apply,input
 
 # Regular expression which should only match correct module names
 module-rgx=(([a-z_][a-z0-9_]*)|([A-Z][a-zA-Z0-9]+))$
