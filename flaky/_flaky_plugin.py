@@ -108,7 +108,7 @@ class _FlakyPlugin:
         :param test:
             The test that has raised an error
         :type test:
-            :class:`nose.case.Test` or :class:`Function`
+            :class:`Function`
         :return:
             True, if the test needs to be rerun; False, otherwise.
         :rtype:
@@ -130,7 +130,7 @@ class _FlakyPlugin:
         :param test:
             The test that has raised an error
         :type test:
-            :class:`nose.case.Test` or :class:`Function`
+            :class:`Function`
         :param name:
             The name of the test that has raised an error
         :type name:
@@ -159,7 +159,7 @@ class _FlakyPlugin:
         :param test:
             The test that has raised an error
         :type test:
-            :class:`nose.case.Test` or :class:`Function`
+            :class:`Function`
         :param err:
             Information about the test failure (from sys.exc_info())
         :type err:
@@ -204,7 +204,7 @@ class _FlakyPlugin:
         :param test:
             The test that has raised an error
         :type test:
-            :class:`nose.case.Test` or :class:`Function`
+            :class:`Function`
         :param name:
             The test name
         :type name:
@@ -228,7 +228,7 @@ class _FlakyPlugin:
         :param test:
             The test that has raised an error or succeeded
         :type test:
-            :class:`nose.case.Test` or :class:`Function`
+            :class:`Function`
         """
         raise NotImplementedError  # pragma: no cover
 
@@ -253,7 +253,7 @@ class _FlakyPlugin:
         :param test:
             The test that has raised an error
         :type test:
-            :class:`nose.case.Test` or :class:`Function`
+            :class:`Function`
         :return:
             True, if the test will be rerun; False, if the test runner should handle it.
         :rtype:
@@ -404,7 +404,7 @@ class _FlakyPlugin:
         :param test:
             The test that is being prepared to run
         :type test:
-            :class:`nose.case.Test`
+            :class:`Function`
         """
         test_callable = cls._get_test_callable(test)
         if test_callable is None:
@@ -427,7 +427,7 @@ class _FlakyPlugin:
         :param test_item:
             The test method from which to get the attribute
         :type test_item:
-            `callable` or :class:`nose.case.Test` or :class:`Function`
+            `callable` or :class:`Function`
         :param flaky_attribute:
             The name of the attribute to get
         :type flaky_attribute:
@@ -449,7 +449,7 @@ class _FlakyPlugin:
         :param test_item:
             The test callable on which to set the attribute
         :type test_item:
-            `callable` or :class:`nose.case.Test` or :class:`Function`
+            `callable` or :class:`Function`
         :param flaky_attribute:
             The name of the attribute to set
         :type flaky_attribute:
@@ -469,7 +469,7 @@ class _FlakyPlugin:
         :param test_item:
             The test callable on which to set the attribute
         :type test_item:
-            `callable` or :class:`nose.case.Test` or :class:`Function`
+            `callable` or :class:`Function`
         :param flaky_attribute:
             The name of the attribute to set
         :type flaky_attribute:
@@ -485,7 +485,7 @@ class _FlakyPlugin:
         :param test:
             The test that is being prepared to run
         :type test:
-            :class:`nose.case.Test` or :class:`Function`
+            :class:`Function`
         :return:
         :rtype:
             `bool`
@@ -501,7 +501,7 @@ class _FlakyPlugin:
         :param test_item:
             The test callable from which to get the flaky related attributes.
         :type test_item:
-            `callable` or :class:`nose.case.Test` or :class:`Function`
+            `callable` or :class:`Function`
         :return:
         :rtype:
             `dict` of `unicode` to varies
@@ -521,7 +521,7 @@ class _FlakyPlugin:
         :param test:
             The flaky test on which to update the flaky attributes.
         :type test:
-            :class:`nose.case.Test` or :class:`Function`
+            :class:`Function`
         :param err:
             Information about the test failure (from sys.exc_info())
         :type err:
@@ -582,7 +582,7 @@ class _FlakyPlugin:
         :param test:
             The test that has raised an error or succeeded
         :type test:
-            :class:`nose.case.Test` or :class:`pytest.Item`
+            :class:`pytest.Item`
         :return:
             The test declaration, callable and name that is being run
         :rtype:
@@ -598,7 +598,7 @@ class _FlakyPlugin:
         :param test:
             The test that has raised an error or succeeded
         :type test:
-            :class:`nose.case.Test` or :class:`pytest.Item`
+            :class:`pytest.Item`
         :return:
             The name of the test callable that is being run by the test
         :rtype:
@@ -614,7 +614,7 @@ class _FlakyPlugin:
         :param test:
             The test in question.
         :type test:
-            :class:`nose.case.Test` or :class:`Function`
+            :class:`Function`
         :param max_runs:
             The value of the FlakyNames.MAX_RUNS attribute to use.
         :type max_runs:
@@ -631,9 +631,9 @@ class _FlakyPlugin:
                 Information about the test failure (from sys.exc_info())
             - name (`unicode`):
                 The test name
-            - test (:class:`nose.case.Test` or :class:`Function`):
+            - test (:class:`Function`):
                 The test that has raised an error
-            - plugin (:class:`FlakyNosePlugin` or :class:`FlakyPytestPlugin`):
+            - plugin (:class:`FlakyPytestPlugin`):
                 The flaky plugin. Has a :prop:`stream` that can be written to in
                 order to add to the Flaky Report.
         :type rerun_filter:
