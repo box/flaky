@@ -4,8 +4,8 @@ flaky
 .. image:: http://opensource.box.com/badges/stable.svg
     :target: http://opensource.box.com/badges
 
-.. image:: https://travis-ci.org/box/flaky.svg?branch=master
-    :target: https://travis-ci.org/box/flaky
+.. image:: https://github.com/box/flaky/actions/workflows/tox.yml/badge.svg?branch=master&event=push
+    :target: https://github.com/box/flaky/actions/workflows/tox.yml
 
 .. image:: https://img.shields.io/pypi/v/flaky.svg
     :target: https://pypi.python.org/pypi/flaky
