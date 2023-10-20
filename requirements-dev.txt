@@ -1,6 +1,5 @@
 -rrequirements.txt
 coveralls
-mock
 ordereddict
 pycodestyle
 pylint
