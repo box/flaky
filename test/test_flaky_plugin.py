@@ -1,16 +1,30 @@
+from collections import namedtuple
 from io import StringIO
 from unittest import TestCase
 
 from flaky._flaky_plugin import _FlakyPlugin
 from flaky.names import FlakyNames
 
-from genty import genty, genty_dataset
+TestCaseDataset = namedtuple("TestCaseDataset",
+    ['max_runs', 'min_passes', 'current_runs', 'current_passes', 'expect_fail'])
 
-
-@genty
 class TestFlakyPlugin(TestCase):
+    _test_dataset = (
+        "default_not_started": TestCaseDataset(2, 1, 0, 0, False),
+        "default_one_failure": TestCaseDataset(2, 1, 1, 0, False),
+        "default_one_success": TestCaseDataset(2, 1, 1, 1, False),
+        "default_two_failures": TestCaseDataset(2, 1, 2, 0, True),
+        "default_one_failure_one_success": TestCaseDataset(2, 1, 2, 1, False),
+        "three_two_not_started": TestCaseDataset(3, 2, 0, 0, False),
+        "three_two_one_failure": TestCaseDataset(3, 2, 1, 0, False),
+        "three_two_one_success": TestCaseDataset(3, 2, 1, 1, False),
+        "three_two_two_failures": TestCaseDataset(3, 2, 2, 0, True),
+        "three_two_one_failure_one_success": TestCaseDataset(3, 2, 2, 1, False),
+        "three_two_two_successes": TestCaseDataset(3, 2, 2, 2, False),
+    )
+
     def setUp(self):
-        super().setUp()
+        super(TestFlakyPlugin, self).setUp()
         self._flaky_plugin = _FlakyPlugin()
 
     def test_flaky_plugin_handles_non_ascii_byte_string_in_exception(self):
@@ -24,43 +38,26 @@ class TestFlakyPlugin(TestCase):
             mock_message,
         )
 
-    @genty_dataset(
-        default_not_started=(2, 1, 0, 0, False),
-        default_one_failure=(2, 1, 1, 0, False),
-        default_one_success=(2, 1, 1, 1, False),
-        default_two_failures=(2, 1, 2, 0, True),
-        default_one_failure_one_success=(2, 1, 2, 1, False),
-        three_two_not_started=(3, 2, 0, 0, False),
-        three_two_one_failure=(3, 2, 1, 0, False),
-        three_two_one_success=(3, 2, 1, 1, False),
-        three_two_two_failures=(3, 2, 2, 0, True),
-        three_two_one_failure_one_success=(3, 2, 2, 1, False),
-        three_two_two_successes=(3, 2, 2, 2, False),
-    )
-    def test_flaky_plugin_identifies_failure(
-            self,
-            max_runs,
-            min_passes,
-            current_runs,
-            current_passes,
-            expect_fail,
-    ):
-        flaky = {
-            FlakyNames.CURRENT_PASSES: current_passes,
-            FlakyNames.CURRENT_RUNS: current_runs,
-            FlakyNames.MAX_RUNS: max_runs,
-            FlakyNames.MIN_PASSES: min_passes,
-        }
-        # pylint:disable=protected-access
-        self.assertEqual(
-            self._flaky_plugin._has_flaky_test_failed(flaky),
-            expect_fail,
-        )
+    def test_flaky_plugin_identifies_failure(self):
+        for test in _test_dataset:
+            with self.subTest(test):
+                flaky = {
+                    FlakyNames.CURRENT_PASSES: _test_dataset[test].current_passes,
+                    FlakyNames.CURRENT_RUNS: _test_dataset[test].current_runs,
+                    FlakyNames.MAX_RUNS: _test_dataset[test].max_runs,
+                    FlakyNames.MIN_PASSES: _test_dataset[test].min_passes,
+                }
+                # pylint:disable=protected-access
+                self.assertEqual(
+                    self._flaky_plugin._has_flaky_test_failed(flaky),
+                    _test_dataset[test].expect_fail,
+                )
 
-    @genty_dataset('ascii stuff', 'ńőń ȁŝćȉȉ ŝƭȕƒƒ')
-    def test_write_unicode_to_stream(self, message):
-        stream = StringIO()
-        stream.write('ascii stuff')
-        # pylint:disable=protected-access
-        self._flaky_plugin._stream.write(message)
-        self._flaky_plugin._add_flaky_report(stream)
+    def test_write_unicode_to_stream(self):
+        for message in ('ascii stuff', 'ńőń ȁŝćȉȉ ŝƭȕƒƒ'):
+            with self.subTest(message):
+                stream = StringIO()
+                stream.write('ascii stuff')
+                # pylint:disable=protected-access
+                self._flaky_plugin._stream.write(message)
+                self._flaky_plugin._add_flaky_report(stream)
