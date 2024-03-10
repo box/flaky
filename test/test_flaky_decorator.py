@@ -38,7 +38,7 @@ class TestFlakyDecorator(TestCase):
         }
 
         self.assertIsNotNone(flaky_attribute)
-        self.assertLessThanOrEqualTo(
+        self.assertLessEqual(
             {
                 FlakyNames.MIN_PASSES: min_passes,
                 FlakyNames.MAX_RUNS: max_runs,
