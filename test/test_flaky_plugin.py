@@ -5,11 +5,14 @@ from unittest import TestCase
 from flaky._flaky_plugin import _FlakyPlugin
 from flaky.names import FlakyNames
 
-TestCaseDataset = namedtuple("TestCaseDataset",
-    ['max_runs', 'min_passes', 'current_runs', 'current_passes', 'expect_fail'])
+TestCaseDataset = namedtuple(
+    "TestCaseDataset",
+    ['max_runs', 'min_passes', 'current_runs', 'current_passes', 'expect_fail'],
+)
+
 
 class TestFlakyPlugin(TestCase):
-    _test_dataset = (
+    _test_dataset = {
         "default_not_started": TestCaseDataset(2, 1, 0, 0, False),
         "default_one_failure": TestCaseDataset(2, 1, 1, 0, False),
         "default_one_success": TestCaseDataset(2, 1, 1, 1, False),
@@ -21,10 +24,10 @@ class TestFlakyPlugin(TestCase):
         "three_two_two_failures": TestCaseDataset(3, 2, 2, 0, True),
         "three_two_one_failure_one_success": TestCaseDataset(3, 2, 2, 1, False),
         "three_two_two_successes": TestCaseDataset(3, 2, 2, 2, False),
-    )
+    }
 
     def setUp(self):
-        super(TestFlakyPlugin, self).setUp()
+        super().setUp()
         self._flaky_plugin = _FlakyPlugin()
 
     def test_flaky_plugin_handles_non_ascii_byte_string_in_exception(self):
@@ -39,18 +42,18 @@ class TestFlakyPlugin(TestCase):
         )
 
     def test_flaky_plugin_identifies_failure(self):
-        for test in _test_dataset:
-            with self.subTest(test):
+        for name, test in self._test_dataset:
+            with self.subTest(name):
                 flaky = {
-                    FlakyNames.CURRENT_PASSES: _test_dataset[test].current_passes,
-                    FlakyNames.CURRENT_RUNS: _test_dataset[test].current_runs,
-                    FlakyNames.MAX_RUNS: _test_dataset[test].max_runs,
-                    FlakyNames.MIN_PASSES: _test_dataset[test].min_passes,
+                    FlakyNames.CURRENT_PASSES: test.current_passes,
+                    FlakyNames.CURRENT_RUNS: test.current_runs,
+                    FlakyNames.MAX_RUNS: test.max_runs,
+                    FlakyNames.MIN_PASSES: test.min_passes,
                 }
                 # pylint:disable=protected-access
                 self.assertEqual(
                     self._flaky_plugin._has_flaky_test_failed(flaky),
-                    _test_dataset[test].expect_fail,
+                    test.expect_fail,
                 )
 
     def test_write_unicode_to_stream(self):

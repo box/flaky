@@ -130,7 +130,23 @@ class FlakyPlugin(_FlakyPlugin):
         :type log:
             `bool`
         """
-        call = runner.call_runtest_hook(item, when, **kwds)
+        def _call_runtest_hook(item, when, **kwds):
+            if when == "setup":
+                ihook = item.ihook.pytest_runtest_setup
+            elif when == "call":
+                ihook = item.ihook.pytest_runtest_call
+            elif when == "teardown":
+                ihook = item.ihook.pytest_runtest_teardown
+            else:
+                assert False, f"Unhandled runtest hook case: {when}"
+            reraise = (runner.Exit,)
+            if not item.config.getoption("usepdb", False):
+                reraise += (KeyboardInterrupt,)
+            return runner.CallInfo.from_call(
+                lambda: ihook(item=item, **kwds), when=when, reraise=reraise
+            )
+
+        call = _call_runtest_hook(item, when, **kwds)
         self._call_infos[item][when] = call
         hook = item.ihook
         report = hook.pytest_runtest_makereport(item=item, call=call)
