@@ -51,7 +51,7 @@ def main():
     base_dir = dirname(__file__)
     setup(
         name='flaky',
-        version='3.8.0',
+        version='3.8.1',
         description='Plugin for pytest that automatically reruns flaky tests.',
         long_description=open(join(base_dir, 'README.rst')).read(),
         author='Box',
