@@ -1,6 +1,5 @@
 -rrequirements.txt
 coveralls
-ordereddict
 pycodestyle
 pylint
 pytest
