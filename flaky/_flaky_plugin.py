@@ -318,7 +318,7 @@ class _FlakyPlugin:
             action='store_false',
             dest='flaky_success_report',
             default=True,
-            help="Suppress reporting flaky test successes"
+            help="Suppress reporting flaky test successes "
                  "in the report at the end of the "
                  "run detailing flaky test results.",
         )
