@@ -1,6 +1,8 @@
 from _pytest import runner  # pylint:disable=import-error
+from types import MethodType
 
 from flaky._flaky_plugin import _FlakyPlugin
+from flaky.names import FlakyNames
 
 
 def _get_worker_output(item):
@@ -10,6 +12,30 @@ def _get_worker_output(item):
     elif hasattr(item, 'slaveoutput'):
         worker_output = item.slaveoutput
     return worker_output
+
+
+def _listchain(self):
+    """Return a list of all parent collectors starting from the root of the
+    collection tree down to and including self."""
+    chain = []
+    item = self
+    while item is not None:
+        chain.append(item)
+        item = item.parent
+    chain.reverse()
+    return chain[:-1]
+
+
+def _original_listchain(self):
+    """Return a list of all parent collectors starting from the root of the
+    collection tree down to and including self."""
+    chain = []
+    item = self
+    while item is not None:
+        chain.append(item)
+        item = item.parent
+    chain.reverse()
+    return chain
 
 
 class FlakyXdist:
@@ -40,6 +66,7 @@ class FlakyPlugin(_FlakyPlugin):
     max_runs = None
     min_passes = None
     config = None
+    is_original_listchain = True
     _call_infos = {}
     _PYTEST_WHEN_SETUP = 'setup'
     _PYTEST_WHEN_CALL = 'call'
@@ -137,16 +164,30 @@ class FlakyPlugin(_FlakyPlugin):
                 ihook = item.ihook.pytest_runtest_call
             elif when == "teardown":
                 ihook = item.ihook.pytest_runtest_teardown
+
+                flaky_attrs = self._get_flaky_attributes(item)
+
+                if kwds.get('nextitem') is None and \
+                        flaky_attrs[FlakyNames.CURRENT_RUNS] < (flaky_attrs[FlakyNames.MAX_RUNS] - 1):
+                    kwds.update({'nextitem': item})
+                    self.is_original_listchain = False                    
+                    item.listchain = MethodType(_listchain, item)
             else:
                 assert False, f"Unhandled runtest hook case: {when}"
             reraise = (runner.Exit,)
             if not item.config.getoption("usepdb", False):
                 reraise += (KeyboardInterrupt,)
+
             return runner.CallInfo.from_call(
                 lambda: ihook(item=item, **kwds), when=when, reraise=reraise
             )
 
         call = _call_runtest_hook(item, when, **kwds)
+
+        if not self.is_original_listchain:
+            self.is_original_listchain = True
+            item.listchain = MethodType(_original_listchain, item)
+
         self._call_infos[item][when] = call
         hook = item.ihook
         report = hook.pytest_runtest_makereport(item=item, call=call)
