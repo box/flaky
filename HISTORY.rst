@@ -6,6 +6,9 @@ Release History
 Upcoming
 ++++++++
 
+- Include tox configuration and its requirements, lint configuration, and README
+  check inputs in source distributions for downstream testing.
+
 3.8.0 (2024-03-10)
 ++++++++++++++++++
 
