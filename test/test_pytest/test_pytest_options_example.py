@@ -3,6 +3,33 @@
 # command line.
 
 from flaky import flaky
+import pytest
+
+
+@pytest.mark.flaky(max_runs=3)
+def test_marker_overrides_forced_defaults(request):
+    attempts = getattr(request.node, 'attempts', 0) + 1
+    request.node.attempts = attempts
+    assert attempts == 3
+
+
+@pytest.mark.flaky(max_runs=3)
+class TestMarkedClass:
+    @staticmethod
+    def test_class_marker_overrides_forced_defaults(request):
+        attempts = getattr(request.node, 'attempts', 0) + 1
+        request.node.attempts = attempts
+        assert attempts == 3
+
+
+@pytest.mark.parametrize('threshold', [
+    pytest.param(3, marks=pytest.mark.flaky(max_runs=3)),
+    pytest.param(4, marks=pytest.mark.flaky(max_runs=4)),
+])
+def test_parameter_marker_overrides_forced_defaults(request, threshold):
+    attempts = getattr(request.node, 'attempts', 0) + 1
+    request.node.attempts = attempts
+    assert attempts == threshold
 
 
 def test_something_flaky(dummy_list=[]):

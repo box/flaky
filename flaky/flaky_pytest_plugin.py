@@ -74,6 +74,7 @@ class FlakyPlugin(_FlakyPlugin):
         """
         test_instance = self._get_test_instance(item)
         self._copy_flaky_attributes(item, test_instance)
+        self._apply_flaky_marker(item)
         if self.force_flaky and not self._has_flaky_attributes(item):
             self._make_test_flaky(
                 item,
@@ -249,6 +250,10 @@ class FlakyPlugin(_FlakyPlugin):
         :param item:
             The test item.
         """
+        self._apply_flaky_marker(item)
+
+    def _apply_flaky_marker(self, item):
+        """Apply explicit markers before falling back to forced defaults."""
         if not self._has_flaky_attributes(item):
             if hasattr(item, 'iter_markers'):
                 for marker in item.iter_markers(name='flaky'):

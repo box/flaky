@@ -6,6 +6,8 @@ Release History
 Upcoming
 ++++++++
 
+- Respect pytest flaky markers when --force-flaky supplies default retry limits.
+
 3.8.0 (2024-03-10)
 ++++++++++++++++++
 
